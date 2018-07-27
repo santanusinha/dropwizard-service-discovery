@@ -3,12 +3,10 @@ package io.dropwizard.discovery.common;
 import com.flipkart.ranger.finder.RandomServiceNodeSelector;
 import com.flipkart.ranger.model.ServiceNode;
 import com.flipkart.ranger.model.ServiceNodeSelector;
-import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 public class LocationAwareServiceNodeSelector implements ServiceNodeSelector<ShardInfo> {
 
@@ -22,25 +20,26 @@ public class LocationAwareServiceNodeSelector implements ServiceNodeSelector<Sha
 
     @Override
     public ServiceNode<ShardInfo> select(List<ServiceNode<ShardInfo>> nodeList) {
+        if (shardInfo.getLocationAttributes() == null
+                || shardInfo.getLocationAttributes().isEmpty()) {
+            return fallbackSelector.select(nodeList);
+        }
+
         List<ServiceNode<ShardInfo>> candidateNodes = Lists.newArrayList(nodeList);
-        if (!Strings.isNullOrEmpty(shardInfo.getDcId())) {
-            candidateNodes = candidateNodes.stream()
-                    .filter(x -> Objects.equals(x.getNodeData().getDcId(), shardInfo.getDcId()))
-                    .collect(Collectors.toList());
-        }
-
-        if (candidateNodes.isEmpty()) {
-            return fallbackSelector.select(nodeList);
-        }
-
-        if (!Strings.isNullOrEmpty(shardInfo.getRackId())) {
-            candidateNodes = candidateNodes.stream()
-                    .filter(x -> Objects.equals(x.getNodeData().getDcId(), shardInfo.getDcId()))
-                    .collect(Collectors.toList());
-        }
-
-        if (candidateNodes.isEmpty()) {
-            return fallbackSelector.select(nodeList);
+        for (int i = 0; i < shardInfo.getLocationAttributes().size(); i++) {
+            List<ServiceNode<ShardInfo>> workingSetNodes = Lists.newArrayList();
+            for (ServiceNode<ShardInfo> serviceNode : candidateNodes) {
+                List<String> locationAttributes = serviceNode.getNodeData().getLocationAttributes();
+                if (!CommonUtils.isNullOrEmpty(locationAttributes)
+                        && locationAttributes.size() > i
+                        && Objects.equals(locationAttributes.get(i), shardInfo.getLocationAttributes().get(i))) {
+                    workingSetNodes.add(serviceNode);
+                }
+            }
+            if (CommonUtils.isNullOrEmpty(workingSetNodes)) {
+                break;
+            }
+            candidateNodes = workingSetNodes;
         }
 
         return fallbackSelector.select(candidateNodes);

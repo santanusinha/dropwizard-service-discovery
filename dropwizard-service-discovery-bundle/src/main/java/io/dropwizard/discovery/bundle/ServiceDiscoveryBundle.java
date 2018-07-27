@@ -110,8 +110,7 @@ public abstract class ServiceDiscoveryBundle<T extends Configuration> implements
                 .withPort(port)
                 .withNodeData(ShardInfo.builder()
                         .environment(serviceDiscoveryConfiguration.getEnvironment())
-                        .dcId(serviceDiscoveryConfiguration.getDcId())
-                        .rackId(serviceDiscoveryConfiguration.getRackId())
+                        .locationAttributes(serviceDiscoveryConfiguration.getLocationAttributes())
                         .build())
                 //Standard healthchecks
                 .withHealthcheck(() -> {

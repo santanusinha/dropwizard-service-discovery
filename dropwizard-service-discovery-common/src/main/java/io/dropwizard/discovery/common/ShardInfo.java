@@ -19,6 +19,8 @@ package io.dropwizard.discovery.common;
 
 import lombok.*;
 
+import java.util.List;
+
 /**
  * Basic shard info used for discovery.
  */
@@ -29,7 +31,9 @@ import lombok.*;
 @EqualsAndHashCode
 @ToString
 public class ShardInfo {
+
     private String environment;
-    private String dcId;
-    private String rackId;
+
+    private List<String> locationAttributes;
+
 }

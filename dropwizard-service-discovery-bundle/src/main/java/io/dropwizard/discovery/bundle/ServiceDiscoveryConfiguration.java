@@ -24,6 +24,7 @@ import org.hibernate.validator.constraints.NotEmpty;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
+import java.util.List;
 
 /**
  * Ranger configuration.
@@ -41,9 +42,7 @@ public class ServiceDiscoveryConfiguration {
     @NotEmpty
     private String environment;
 
-    private String dcId;
-
-    private String rackId;
+    private List<String> locationAttributes;
 
     @NotNull
     @NotEmpty
@@ -73,8 +72,7 @@ public class ServiceDiscoveryConfiguration {
     @Builder
     public ServiceDiscoveryConfiguration(String namespace,
                                          String environment,
-                                         String dcId,
-                                         String rackId,
+                                         List<String> locationAttributes,
                                          String zookeeper,
                                          int connectionRetryIntervalMillis,
                                          String publishedHost,
@@ -83,8 +81,7 @@ public class ServiceDiscoveryConfiguration {
                                          long initialDelaySeconds) {
         this.namespace = namespace;
         this.environment = environment;
-        this.dcId = dcId;
-        this.rackId = rackId;
+        this.locationAttributes = locationAttributes;
         this.zookeeper = zookeeper;
         this.connectionRetryIntervalMillis = connectionRetryIntervalMillis;
         this.publishedHost = publishedHost;
