@@ -4,6 +4,6 @@ public enum NodeSelectorImpl {
 
     RANDOM,
     ROUND_ROBIN,
-    RACK_AWARE
+    LOCATION_AWARE
 
 }

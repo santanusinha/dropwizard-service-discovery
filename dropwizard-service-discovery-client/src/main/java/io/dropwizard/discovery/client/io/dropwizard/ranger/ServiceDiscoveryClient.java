@@ -83,7 +83,7 @@ public class ServiceDiscoveryClient {
                     return new RandomServiceNodeSelector<>();
                 case ROUND_ROBIN:
                     return new RoundRobinServiceNodeSelector<>();
-                case RACK_AWARE:
+                case LOCATION_AWARE:
                     return new LocationAwareServiceNodeSelector(criteria);
             }
         }
