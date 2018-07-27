@@ -17,6 +17,7 @@
 
 package io.dropwizard.discovery.bundle;
 
+import io.dropwizard.discovery.common.NodeSelectorImpl;
 import lombok.*;
 import org.hibernate.validator.constraints.NotEmpty;
 
@@ -39,6 +40,10 @@ public class ServiceDiscoveryConfiguration {
     @NotNull
     @NotEmpty
     private String environment;
+
+    private String dcId;
+
+    private String rackId;
 
     @NotNull
     @NotEmpty
@@ -63,9 +68,13 @@ public class ServiceDiscoveryConfiguration {
 
     private boolean initialRotationStatus = true;
 
+    private NodeSelectorImpl nodeSelectorImpl;
+
     @Builder
     public ServiceDiscoveryConfiguration(String namespace,
                                          String environment,
+                                         String dcId,
+                                         String rackId,
                                          String zookeeper,
                                          int connectionRetryIntervalMillis,
                                          String publishedHost,
@@ -74,6 +83,8 @@ public class ServiceDiscoveryConfiguration {
                                          long initialDelaySeconds) {
         this.namespace = namespace;
         this.environment = environment;
+        this.dcId = dcId;
+        this.rackId = rackId;
         this.zookeeper = zookeeper;
         this.connectionRetryIntervalMillis = connectionRetryIntervalMillis;
         this.publishedHost = publishedHost;

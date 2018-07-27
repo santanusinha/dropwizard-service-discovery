@@ -30,4 +30,6 @@ import lombok.*;
 @ToString
 public class ShardInfo {
     private String environment;
+    private String dcId;
+    private String rackId;
 }

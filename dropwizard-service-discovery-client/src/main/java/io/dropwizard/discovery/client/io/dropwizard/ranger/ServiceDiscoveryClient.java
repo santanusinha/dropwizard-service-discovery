@@ -20,8 +20,13 @@ package io.dropwizard.discovery.client.io.dropwizard.ranger;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.ranger.ServiceFinderBuilders;
+import com.flipkart.ranger.finder.RandomServiceNodeSelector;
+import com.flipkart.ranger.finder.RoundRobinServiceNodeSelector;
 import com.flipkart.ranger.finder.sharded.SimpleShardedServiceFinder;
 import com.flipkart.ranger.model.ServiceNode;
+import com.flipkart.ranger.model.ServiceNodeSelector;
+import io.dropwizard.discovery.common.LocationAwareServiceNodeSelector;
+import io.dropwizard.discovery.common.NodeSelectorImpl;
 import io.dropwizard.discovery.common.ShardInfo;
 import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
@@ -42,14 +47,16 @@ public class ServiceDiscoveryClient {
 
     @Builder(builderMethodName = "fromConnectionString", builderClassName = "FromConnectionStringBuilder")
     ServiceDiscoveryClient(String namespace, String serviceName, String environment,
-                           ObjectMapper objectMapper, String connectionString) throws Exception {
+                           ObjectMapper objectMapper, String connectionString,
+                           NodeSelectorImpl nodeSelector) throws Exception {
         this(namespace, serviceName, environment, objectMapper,
-                CuratorFrameworkFactory.newClient(connectionString, new RetryForever(5000)));
+                CuratorFrameworkFactory.newClient(connectionString, new RetryForever(5000)), nodeSelector);
     }
 
     @Builder(builderMethodName = "fromCurator", builderClassName = "FromCuratorBuilder")
     ServiceDiscoveryClient(String namespace, String serviceName, String environment,
-                           ObjectMapper objectMapper, CuratorFramework curator) throws Exception {
+                           ObjectMapper objectMapper, CuratorFramework curator,
+                           NodeSelectorImpl nodeSelector) throws Exception {
         this.criteria = ShardInfo.builder().environment(environment).build();
         this.serviceFinder = ServiceFinderBuilders.<ShardInfo>shardedFinderBuilder()
                 .withCuratorFramework(curator)
@@ -65,7 +72,22 @@ public class ServiceDiscoveryClient {
                     }
                     return null;
                 })
+                .withNodeSelector(nodeSelector(nodeSelector))
                 .build();
+    }
+
+    private ServiceNodeSelector<ShardInfo> nodeSelector(NodeSelectorImpl nodeSelector) {
+        if (nodeSelector != null) {
+            switch (nodeSelector) {
+                case RANDOM:
+                    return new RandomServiceNodeSelector<>();
+                case ROUND_ROBIN:
+                    return new RoundRobinServiceNodeSelector<>();
+                case RACK_AWARE:
+                    return new LocationAwareServiceNodeSelector(criteria);
+            }
+        }
+        return new RandomServiceNodeSelector<>();
     }
 
     public void start() throws Exception {

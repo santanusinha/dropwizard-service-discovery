@@ -109,8 +109,10 @@ public abstract class ServiceDiscoveryBundle<T extends Configuration> implements
                 .withHostname(hostname)
                 .withPort(port)
                 .withNodeData(ShardInfo.builder()
-                                .environment(serviceDiscoveryConfiguration.getEnvironment())
-                                .build())
+                        .environment(serviceDiscoveryConfiguration.getEnvironment())
+                        .dcId(serviceDiscoveryConfiguration.getDcId())
+                        .rackId(serviceDiscoveryConfiguration.getRackId())
+                        .build())
                 //Standard healthchecks
                 .withHealthcheck(() -> {
                     for (Healthcheck healthcheck : healthchecks) {
@@ -143,6 +145,7 @@ public abstract class ServiceDiscoveryBundle<T extends Configuration> implements
                                     .serviceName(serviceName)
                                     .environment(serviceDiscoveryConfiguration.getEnvironment())
                                     .objectMapper(environment.getObjectMapper())
+                                    .nodeSelector(serviceDiscoveryConfiguration.getNodeSelectorImpl())
                                     .build();
 
 
