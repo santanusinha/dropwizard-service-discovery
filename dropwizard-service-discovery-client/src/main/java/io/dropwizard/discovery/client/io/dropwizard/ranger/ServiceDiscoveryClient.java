@@ -39,12 +39,20 @@ import java.util.Optional;
 public class ServiceDiscoveryClient {
     private final ShardInfo criteria;
     private SimpleShardedServiceFinder<ShardInfo> serviceFinder;
+    private ProximityShardSelector<ShardInfo> proximityShardSelector = new ProximityShardSelector<ShardInfo>();
 
     @Builder(builderMethodName = "fromConnectionString", builderClassName = "FromConnectionStringBuilder")
     ServiceDiscoveryClient(String namespace, String serviceName, String environment,
                            ObjectMapper objectMapper, String connectionString) throws Exception {
         this(namespace, serviceName, environment, objectMapper,
                 CuratorFrameworkFactory.newClient(connectionString, new RetryForever(5000)));
+    }
+
+    @Builder(builderMethodName = "fromConnectionString", builderClassName = "FromConnectionStringBuilder")
+    ServiceDiscoveryClient(String namespace, String serviceName, String environment,
+                           ObjectMapper objectMapper, String connectionString, String distributionId, double probability) throws Exception {
+        this(namespace, serviceName, environment, objectMapper,
+                CuratorFrameworkFactory.newClient(connectionString, new RetryForever(5000)), distributionId, probability);
     }
 
     @Builder(builderMethodName = "fromCurator", builderClassName = "FromCuratorBuilder")
@@ -55,6 +63,31 @@ public class ServiceDiscoveryClient {
                 .withCuratorFramework(curator)
                 .withNamespace(namespace)
                 .withServiceName(serviceName)
+                .withDeserializer(data -> {
+                    try {
+                        return objectMapper.readValue(data,
+                                new TypeReference<ServiceNode<ShardInfo>>() {
+                                });
+                    } catch (Exception e) {
+                        log.warn("Could not parse node data", e);
+                    }
+                    return null;
+                })
+                .build();
+    }
+
+    @Builder(builderMethodName = "fromCurator", builderClassName = "FromCuratorBuilder")
+    ServiceDiscoveryClient(String namespace, String serviceName, String environment,
+                           ObjectMapper objectMapper, CuratorFramework curator, String distributionId, double probability) throws Exception {
+        //not setting distributionId in criteria as we don't want shardSelector to select only mentioned distributionId
+        this.criteria = ShardInfo.builder().environment(environment).build();
+        this.proximityShardSelector.setDistributionId(distributionId);
+        this.proximityShardSelector.setProbability(probability);
+        this.serviceFinder = ServiceFinderBuilders.<ShardInfo>shardedFinderBuilder()
+                .withCuratorFramework(curator)
+                .withNamespace(namespace)
+                .withServiceName(serviceName)
+                .withShardSelector(proximityShardSelector)
                 .withDeserializer(data -> {
                     try {
                         return objectMapper.readValue(data,
@@ -83,5 +116,4 @@ public class ServiceDiscoveryClient {
     public List<ServiceNode<ShardInfo>> getAllNodes() {
         return serviceFinder.getAll(criteria);
     }
-
 }

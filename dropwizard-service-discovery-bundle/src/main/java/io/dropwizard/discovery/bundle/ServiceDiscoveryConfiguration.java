@@ -63,6 +63,10 @@ public class ServiceDiscoveryConfiguration {
 
     private boolean initialRotationStatus = true;
 
+    private double probability = 0.5;
+
+    private String distributionId = "default";
+
     @Builder
     public ServiceDiscoveryConfiguration(String namespace,
                                          String environment,
@@ -71,7 +75,9 @@ public class ServiceDiscoveryConfiguration {
                                          String publishedHost,
                                          int publishedPort,
                                          boolean initialRotationStatus,
-                                         long initialDelaySeconds) {
+                                         long initialDelaySeconds,
+                                         double probability,
+                                         String distributionId) {
         this.namespace = namespace;
         this.environment = environment;
         this.zookeeper = zookeeper;
@@ -80,5 +86,7 @@ public class ServiceDiscoveryConfiguration {
         this.publishedPort = publishedPort;
         this.initialRotationStatus = initialRotationStatus;
         this.initialDelaySeconds = initialDelaySeconds;
+        this.probability = probability;
+        this.distributionId = distributionId;
     }
 }
