@@ -120,7 +120,6 @@ public class ServiceDiscoveryBundleTest {
 
     @Test
     public void testDiscovery() throws Exception {
-        System.out.println("\n Here: " + bundle.getServiceDiscoveryClient().getAllNodes() + " : Here \n");
         Optional<ServiceNode<ShardInfo>> info = bundle.getServiceDiscoveryClient().getNode();
         System.out.println(environment.getObjectMapper().writeValueAsString(info));
         assertTrue(info.isPresent());
