@@ -11,6 +11,7 @@ import lombok.Setter;
 import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class ProximityShardSelector implements ShardSelector<ShardInfo, MapBasedServiceRegistry<ShardInfo>> {
     @Getter
@@ -35,37 +36,36 @@ public class ProximityShardSelector implements ShardSelector<ShardInfo, MapBased
 
     SecureRandom secureRandom = new SecureRandom();
     //List of Service Nodes with the required environment
-    List<ServiceNode<ShardInfo>> environmentNodesList = new ArrayList<ServiceNode<ShardInfo>>();
-    //List of service nodes with the required environment and distributionId
-    List<ServiceNode<ShardInfo>> distributionNodesList = new ArrayList<ServiceNode<ShardInfo>>();
-    //List of service nodes with the required environment and rackId
-    List<ServiceNode<ShardInfo>> rackNodesList = new ArrayList<ServiceNode<ShardInfo>>();
-    List<ServiceNode<ShardInfo>> dcNodesList = new ArrayList<ServiceNode<ShardInfo>>();
-    List<ServiceNode<ShardInfo>> hostNodesList = new ArrayList<ServiceNode<ShardInfo>>();
+    List<ServiceNode<ShardInfo>> environmentNodesList;
     //final nodes List
-    List<ServiceNode<ShardInfo>> nodesList = new ArrayList<ServiceNode<ShardInfo>>();
-    List<ServiceNode<ShardInfo>> tempNodesList = new ArrayList<ServiceNode<ShardInfo>>();
+    List<ServiceNode<ShardInfo>> nodesList;
+    List<ServiceNode<ShardInfo>> tempNodesList;
 
 
     @Override
     public List<ServiceNode<ShardInfo>> nodes(ShardInfo shardInfo, MapBasedServiceRegistry<ShardInfo> serviceRegistry) {
+        this.environmentNodesList = new ArrayList<ServiceNode<ShardInfo>>();
+        this.nodesList = new ArrayList<ServiceNode<ShardInfo>>();
         ListMultimap<ShardInfo, ServiceNode<ShardInfo>> serviceNodes =  serviceRegistry.nodes();
         for(ShardInfo key : serviceNodes.keySet()) {
-            if(key.getEnvironment() == shardInfo.getEnvironment()){
+            if(key.getEnvironment().equals(shardInfo.getEnvironment())){
                 environmentNodesList.addAll(serviceNodes.get(key));
             }
         }
 
         if(selectorType == SelectorType.DISTRIBUTION) {
             nodesList = distributionShardSelectorNodes(shardInfo);
-        } else {
+        } else if (selectorType == SelectorType.RACK) {
             nodesList = rackShardSelectorNodes(shardInfo);
+        } else {
+            return environmentNodesList;
         }
 
         return nodesList;
     }
 
     private List<ServiceNode<ShardInfo>> distributionShardSelectorNodes(ShardInfo shardInfo) {
+        List<ServiceNode<ShardInfo>> distributionNodesList = new ArrayList<ServiceNode<ShardInfo>>();
         String distributionId = shardInfo.getProximityShardInfo().getIDs().get(0);
 
         if(distributionId == null || distributionProbability == null) {
@@ -92,6 +92,12 @@ public class ProximityShardSelector implements ShardSelector<ShardInfo, MapBased
     }
 
     private List<ServiceNode<ShardInfo>> rackShardSelectorNodes(ShardInfo shardInfo){
+        //List of service nodes with the required environment and rackId
+        List<ServiceNode<ShardInfo>> rackNodesList = new ArrayList<ServiceNode<ShardInfo>>();
+        List<ServiceNode<ShardInfo>> dcNodesList = new ArrayList<ServiceNode<ShardInfo>>();
+        List<ServiceNode<ShardInfo>> hostNodesList = new ArrayList<ServiceNode<ShardInfo>>();
+        this.tempNodesList = new ArrayList<ServiceNode<ShardInfo>>();
+
         String dcId = shardInfo.getProximityShardInfo().getIDs().get(0);
         String rackId = shardInfo.getProximityShardInfo().getIDs().get(1);
         String host = shardInfo.getProximityShardInfo().getIDs().get(2);
