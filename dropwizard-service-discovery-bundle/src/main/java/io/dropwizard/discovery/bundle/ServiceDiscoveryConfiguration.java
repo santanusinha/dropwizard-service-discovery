@@ -63,9 +63,21 @@ public class ServiceDiscoveryConfiguration {
 
     private boolean initialRotationStatus = true;
 
-    private double probability = 0.5;
+    private Double distributionProbability;
 
-    private String distributionId = "default";
+    private Double dcProbability;
+
+    private Double rackProbability;
+
+    private Double hostProbability;
+
+    private String distributionId;
+
+    private String dcId;
+
+    private String rackId;
+
+    private String host;
 
     @Builder
     public ServiceDiscoveryConfiguration(String namespace,
@@ -76,8 +88,14 @@ public class ServiceDiscoveryConfiguration {
                                          int publishedPort,
                                          boolean initialRotationStatus,
                                          long initialDelaySeconds,
-                                         double probability,
-                                         String distributionId) {
+                                         Double distributionProbability,
+                                         String distributionId,
+                                         String dcId,
+                                         String rackId,
+                                         String host,
+                                         Double dcProbability,
+                                         Double rackProbability,
+                                         Double hostProbability) {
         this.namespace = namespace;
         this.environment = environment;
         this.zookeeper = zookeeper;
@@ -86,7 +104,13 @@ public class ServiceDiscoveryConfiguration {
         this.publishedPort = publishedPort;
         this.initialRotationStatus = initialRotationStatus;
         this.initialDelaySeconds = initialDelaySeconds;
-        this.probability = probability;
+        this.distributionProbability = distributionProbability;
+        this.dcProbability = distributionProbability;
+        this.rackProbability = rackProbability;
+        this.hostProbability = hostProbability;
         this.distributionId = distributionId;
+        this.dcId = dcId;
+        this.rackId = rackId;
+        this.host = host;
     }
 }

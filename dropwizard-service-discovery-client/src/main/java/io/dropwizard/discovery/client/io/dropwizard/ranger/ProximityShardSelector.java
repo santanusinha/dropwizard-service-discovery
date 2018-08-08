@@ -3,57 +3,152 @@ package io.dropwizard.discovery.client.io.dropwizard.ranger;
 import com.flipkart.ranger.finder.sharded.MapBasedServiceRegistry;
 import com.flipkart.ranger.model.ServiceNode;
 import com.flipkart.ranger.model.ShardSelector;
+import com.google.common.collect.ListMultimap;
 import io.dropwizard.discovery.common.ShardInfo;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ProximityShardSelector<T> implements ShardSelector<ShardInfo, MapBasedServiceRegistry<ShardInfo>> {
-    private String distributionId;
-    private double probability;
+public class ProximityShardSelector implements ShardSelector<ShardInfo, MapBasedServiceRegistry<ShardInfo>> {
+    @Getter
+    @Setter
+    private Double distributionProbability;
 
-    public String getDistributionId() {
-        return distributionId;
-    }
+    @Getter
+    @Setter
+    private Double dcProbability;
 
-    public void setDistributionId(String distributionId) {
-        this.distributionId = distributionId;
-    }
+    @Getter
+    @Setter
+    private Double rackProbability;
 
-    public double getProbability() {
-        return probability;
-    }
+    @Getter
+    @Setter
+    private Double hostProbability;
 
-    public void setProbability(double probability) {
-        this.probability = probability;
-    }
+    @Getter
+    @Setter
+    private SelectorType selectorType;
+
+    SecureRandom secureRandom = new SecureRandom();
+    //List of Service Nodes with the required environment
+    List<ServiceNode<ShardInfo>> environmentNodesList = new ArrayList<ServiceNode<ShardInfo>>();
+    //List of service nodes with the required environment and distributionId
+    List<ServiceNode<ShardInfo>> distributionNodesList = new ArrayList<ServiceNode<ShardInfo>>();
+    //List of service nodes with the required environment and dcId, rackId and host
+    List<ServiceNode<ShardInfo>> rackNodesList = new ArrayList<ServiceNode<ShardInfo>>();
+    //final nodes List
+    List<ServiceNode<ShardInfo>> nodesList = new ArrayList<ServiceNode<ShardInfo>>();
+    List<ServiceNode<ShardInfo>> tempNodesList = new ArrayList<ServiceNode<ShardInfo>>();
+
 
     @Override
-    public List<ServiceNode<ShardInfo>> nodes(ShardInfo criteria, MapBasedServiceRegistry<ShardInfo> serviceRegistry) {
-        List<ServiceNode<ShardInfo>> nodesList =  serviceRegistry.nodes().get(criteria);
-        List<ServiceNode<ShardInfo>> serviceNodes = new ArrayList<ServiceNode<ShardInfo>>();
-        SecureRandom secureRandom = new SecureRandom();
-
-        int randomNo = secureRandom.nextInt(100);
-        boolean providedDistributionIdSelected = true;
-
-        //as per probability here we are setting weather we should go ahead with distribution id rack or not
-        if(randomNo < probability * 100) {
-            providedDistributionIdSelected = true;
-        } else {
-            providedDistributionIdSelected = false;
-        }
-
-        //getting the nodes corresponding to distributionId
-        for(ServiceNode<ShardInfo> node : nodesList) {
-            if(providedDistributionIdSelected && distributionId == node.getNodeData().getDistributionId()){
-                serviceNodes.add(node);
-            } else if(!providedDistributionIdSelected && distributionId != node.getNodeData().getDistributionId()) {
-                serviceNodes.add(node);
+    public List<ServiceNode<ShardInfo>> nodes(ShardInfo shardInfo, MapBasedServiceRegistry<ShardInfo> serviceRegistry) {
+        ListMultimap<ShardInfo, ServiceNode<ShardInfo>> serviceNodes =  serviceRegistry.nodes();
+        for(ShardInfo key : serviceNodes.keySet()) {
+            if(key.getEnvironment() == shardInfo.getEnvironment()){
+                environmentNodesList.addAll(serviceNodes.get(key));
             }
         }
 
-        return serviceNodes;
+        if(selectorType == SelectorType.DISTRIBUTION) {
+            nodesList = distributionShardSelectorNodes(shardInfo);
+        } else {
+            nodesList = rackShardSelectorNodes(shardInfo);
+        }
+
+        return nodesList;
+    }
+
+    private List<ServiceNode<ShardInfo>> distributionShardSelectorNodes(ShardInfo shardInfo) {
+        String distributionId = shardInfo.getProximityShardInfo().getIDs().get(0);
+
+        if(distributionId == null || distributionProbability == null) {
+            return environmentNodesList;
+        }
+
+        boolean providedDistributionIdSelected = isProvidedIdSelected(distributionProbability);
+
+        //getting the nodes corresponding to distributionId
+        for(ServiceNode<ShardInfo> node : environmentNodesList) {
+            if(providedDistributionIdSelected && distributionId == node.getNodeData().getProximityShardInfo().getIDs().get(0)){
+                distributionNodesList.add(node);
+            } else if(!providedDistributionIdSelected && distributionId != node.getNodeData().getProximityShardInfo().getIDs().get(0)) {
+                distributionNodesList.add(node);
+            }
+        }
+
+        return distributionNodesList;
+    }
+
+    private List<ServiceNode<ShardInfo>> rackShardSelectorNodes(ShardInfo shardInfo){
+        String dcId = shardInfo.getProximityShardInfo().getIDs().get(0);
+        String rackId = shardInfo.getProximityShardInfo().getIDs().get(1);
+        String host = shardInfo.getProximityShardInfo().getIDs().get(2);
+
+        rackNodesList = filteredNodesList(dcId, dcProbability, environmentNodesList, IDtype.DC);
+        rackNodesList = filteredNodesList(rackId, rackProbability, rackNodesList, IDtype.RACK);
+        rackNodesList = filteredNodesList(host, hostProbability, rackNodesList, IDtype.HOST);
+
+        return rackNodesList;
+    }
+
+    private List<ServiceNode<ShardInfo>> filteredNodesList(String id, Double probability, List<ServiceNode<ShardInfo>> inputNodesList, IDtype idtype ) {
+        tempNodesList.clear();
+        if(id == null || probability == null) {
+            return inputNodesList;
+        }
+
+        boolean providedIdSelected = isProvidedIdSelected(probability);
+
+        //getting the nodes corresponding to Id
+        for(ServiceNode<ShardInfo> node : inputNodesList) {
+            if(providedIdSelected && id == idtype.getId(node)){
+                tempNodesList.add(node);
+            } else if(!providedIdSelected && id != idtype.getId(node)) {
+                tempNodesList.add(node);
+            }
+        }
+
+        return tempNodesList;
+    }
+
+    private boolean isProvidedIdSelected(Double probability) {
+        if(secureRandom.nextInt(100) < probability * 100) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    private enum IDtype {
+
+        DC {
+            @Override
+            public String getId(ServiceNode<ShardInfo> node) {
+                return node.getNodeData().getProximityShardInfo().getIDs().get(0);
+            }
+        },
+        RACK {
+            @Override
+            public String getId(ServiceNode<ShardInfo> node) {
+                return node.getNodeData().getProximityShardInfo().getIDs().get(1);
+            }
+        },
+        HOST {
+            @Override
+            public String getId(ServiceNode<ShardInfo> node) {
+                return node.getNodeData().getProximityShardInfo().getIDs().get(2);
+            }
+        };
+
+        public abstract String getId(ServiceNode<ShardInfo> node);
+    }
+
+    public enum SelectorType {
+        DISTRIBUTION, RACK;
     }
 }

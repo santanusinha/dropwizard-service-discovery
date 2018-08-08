@@ -22,6 +22,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.ranger.ServiceFinderBuilders;
 import com.flipkart.ranger.finder.sharded.SimpleShardedServiceFinder;
 import com.flipkart.ranger.model.ServiceNode;
+import io.dropwizard.discovery.common.DistributionShardInfo;
+import io.dropwizard.discovery.common.ProximityShardInfo;
+import io.dropwizard.discovery.common.RackShardInfo;
 import io.dropwizard.discovery.common.ShardInfo;
 import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
@@ -39,7 +42,7 @@ import java.util.Optional;
 public class ServiceDiscoveryClient {
     private final ShardInfo criteria;
     private SimpleShardedServiceFinder<ShardInfo> serviceFinder;
-    private ProximityShardSelector<ShardInfo> proximityShardSelector = new ProximityShardSelector<ShardInfo>();
+    private ProximityShardSelector proximityShardSelector = new ProximityShardSelector();
 
     @Builder(builderMethodName = "fromConnectionString", builderClassName = "FromConnectionStringBuilder")
     ServiceDiscoveryClient(String namespace, String serviceName, String environment,
@@ -48,11 +51,20 @@ public class ServiceDiscoveryClient {
                 CuratorFrameworkFactory.newClient(connectionString, new RetryForever(5000)));
     }
 
-    @Builder(builderMethodName = "fromConnectionString", builderClassName = "FromConnectionStringBuilder")
-    ServiceDiscoveryClient(String namespace, String serviceName, String environment,
-                           ObjectMapper objectMapper, String connectionString, String distributionId, double probability) throws Exception {
+    @Builder(builderMethodName = "fromConnectionStringWithDistributionInfo", builderClassName = "FromConnectionStringWithDistributionInfoBuilder")
+    ServiceDiscoveryClient(String namespace, String serviceName, String environment, ObjectMapper objectMapper,
+                           String connectionString, String distributionId, Double distributionProbability) throws Exception {
         this(namespace, serviceName, environment, objectMapper,
-                CuratorFrameworkFactory.newClient(connectionString, new RetryForever(5000)), distributionId, probability);
+                CuratorFrameworkFactory.newClient(connectionString, new RetryForever(5000)), distributionId, distributionProbability);
+    }
+
+    @Builder(builderMethodName = "fromConnectionStringWithRackInfo", builderClassName = "FromConnectionStringWithRackInfoBuilder")
+    ServiceDiscoveryClient(String namespace, String serviceName, String environment, ObjectMapper objectMapper,
+                           String connectionString, String dcId, String rackId, String host,
+                           Double dcProbability, Double rackProbability, Double hostProbability) throws Exception {
+        this(namespace, serviceName, environment, objectMapper,
+                CuratorFrameworkFactory.newClient(connectionString, new RetryForever(5000)),
+                dcId, rackId, host, dcProbability, rackProbability, hostProbability);
     }
 
     @Builder(builderMethodName = "fromCurator", builderClassName = "FromCuratorBuilder")
@@ -76,13 +88,41 @@ public class ServiceDiscoveryClient {
                 .build();
     }
 
-    @Builder(builderMethodName = "fromCurator", builderClassName = "FromCuratorBuilder")
+    @Builder(builderMethodName = "fromCuratorWithDistributionInfo", builderClassName = "FromCuratorWithDistributionInfoBuilder")
     ServiceDiscoveryClient(String namespace, String serviceName, String environment,
-                           ObjectMapper objectMapper, CuratorFramework curator, String distributionId, double probability) throws Exception {
-        //not setting distributionId in criteria as we don't want shardSelector to select only mentioned distributionId
-        this.criteria = ShardInfo.builder().environment(environment).build();
-        this.proximityShardSelector.setDistributionId(distributionId);
-        this.proximityShardSelector.setProbability(probability);
+                           ObjectMapper objectMapper, CuratorFramework curator, String distributionId, Double distributionProbability) throws Exception {
+        ProximityShardInfo proximityShardInfo = DistributionShardInfo.builder().distributionId(distributionId).build();
+        this.criteria = ShardInfo.builder().environment(environment).proximityShardInfo(proximityShardInfo).build();
+        this.proximityShardSelector.setDistributionProbability(distributionProbability);
+        this.proximityShardSelector.setSelectorType(ProximityShardSelector.SelectorType.DISTRIBUTION);
+        this.serviceFinder = ServiceFinderBuilders.<ShardInfo>shardedFinderBuilder()
+                .withCuratorFramework(curator)
+                .withNamespace(namespace)
+                .withServiceName(serviceName)
+                .withShardSelector(proximityShardSelector)
+                .withDeserializer(data -> {
+                    try {
+                        return objectMapper.readValue(data,
+                                new TypeReference<ServiceNode<ShardInfo>>() {
+                                });
+                    } catch (Exception e) {
+                        log.warn("Could not parse node data", e);
+                    }
+                    return null;
+                })
+                .build();
+    }
+
+    @Builder(builderMethodName = "fromCuratorWithRackInfo", builderClassName = "FromCuratorWithRackInfoBuilder")
+    ServiceDiscoveryClient(String namespace, String serviceName, String environment,
+                           ObjectMapper objectMapper, CuratorFramework curator, String dcId, String rackId, String host,
+                           Double dcProbability, Double rackProbability, Double hostProbability) throws Exception {
+        ProximityShardInfo proximityShardInfo = RackShardInfo.builder().dcId(dcId).rackId(rackId).host(host).build();
+        this.criteria = ShardInfo.builder().environment(environment).proximityShardInfo(proximityShardInfo).build();
+        this.proximityShardSelector.setDcProbability(dcProbability);
+        this.proximityShardSelector.setRackProbability(rackProbability);
+        this.proximityShardSelector.setHostProbability(hostProbability);
+        this.proximityShardSelector.setSelectorType(ProximityShardSelector.SelectorType.RACK);
         this.serviceFinder = ServiceFinderBuilders.<ShardInfo>shardedFinderBuilder()
                 .withCuratorFramework(curator)
                 .withNamespace(namespace)
