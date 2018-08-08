@@ -38,8 +38,10 @@ public class ProximityShardSelector implements ShardSelector<ShardInfo, MapBased
     List<ServiceNode<ShardInfo>> environmentNodesList = new ArrayList<ServiceNode<ShardInfo>>();
     //List of service nodes with the required environment and distributionId
     List<ServiceNode<ShardInfo>> distributionNodesList = new ArrayList<ServiceNode<ShardInfo>>();
-    //List of service nodes with the required environment and dcId, rackId and host
+    //List of service nodes with the required environment and rackId
     List<ServiceNode<ShardInfo>> rackNodesList = new ArrayList<ServiceNode<ShardInfo>>();
+    List<ServiceNode<ShardInfo>> dcNodesList = new ArrayList<ServiceNode<ShardInfo>>();
+    List<ServiceNode<ShardInfo>> hostNodesList = new ArrayList<ServiceNode<ShardInfo>>();
     //final nodes List
     List<ServiceNode<ShardInfo>> nodesList = new ArrayList<ServiceNode<ShardInfo>>();
     List<ServiceNode<ShardInfo>> tempNodesList = new ArrayList<ServiceNode<ShardInfo>>();
@@ -81,6 +83,11 @@ public class ProximityShardSelector implements ShardSelector<ShardInfo, MapBased
             }
         }
 
+        //just in case if as per probability we get no nodes in distributionNodesList
+        if(distributionNodesList == null) {
+            return environmentNodesList;
+        }
+
         return distributionNodesList;
     }
 
@@ -89,11 +96,23 @@ public class ProximityShardSelector implements ShardSelector<ShardInfo, MapBased
         String rackId = shardInfo.getProximityShardInfo().getIDs().get(1);
         String host = shardInfo.getProximityShardInfo().getIDs().get(2);
 
-        rackNodesList = filteredNodesList(dcId, dcProbability, environmentNodesList, IDtype.DC);
-        rackNodesList = filteredNodesList(rackId, rackProbability, rackNodesList, IDtype.RACK);
-        rackNodesList = filteredNodesList(host, hostProbability, rackNodesList, IDtype.HOST);
+        dcNodesList = filteredNodesList(dcId, dcProbability, environmentNodesList, IDtype.DC);
+        //in case if as per probability we get no nodes in dcNodesList
+        if(dcNodesList == null) {
+            return environmentNodesList;
+        }
+        rackNodesList = filteredNodesList(rackId, rackProbability, dcNodesList, IDtype.RACK);
+        //in case if as per probability we get no nodes in rackNodesList
+        if(rackNodesList == null) {
+            return dcNodesList;
+        }
+        hostNodesList = filteredNodesList(host, hostProbability, rackNodesList, IDtype.HOST);
+        //in case if as per probability we get no nodes in hostNodesList
+        if(hostNodesList == null) {
+            return rackNodesList;
+        }
 
-        return rackNodesList;
+        return hostNodesList;
     }
 
     private List<ServiceNode<ShardInfo>> filteredNodesList(String id, Double probability, List<ServiceNode<ShardInfo>> inputNodesList, IDtype idtype ) {
