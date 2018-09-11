@@ -35,6 +35,9 @@ import io.dropwizard.discovery.bundle.rotationstatus.BIRTask;
 import io.dropwizard.discovery.bundle.rotationstatus.OORTask;
 import io.dropwizard.discovery.bundle.rotationstatus.RotationStatus;
 import io.dropwizard.discovery.client.io.dropwizard.ranger.ServiceDiscoveryClient;
+import io.dropwizard.discovery.common.DistributionShardInfo;
+import io.dropwizard.discovery.common.ProximityShardInfo;
+import io.dropwizard.discovery.common.RackShardInfo;
 import io.dropwizard.discovery.common.ShardInfo;
 import io.dropwizard.lifecycle.Managed;
 import io.dropwizard.setup.Bootstrap;
@@ -108,9 +111,7 @@ public abstract class ServiceDiscoveryBundle<T extends Configuration> implements
                 })
                 .withHostname(hostname)
                 .withPort(port)
-                .withNodeData(ShardInfo.builder()
-                                .environment(serviceDiscoveryConfiguration.getEnvironment())
-                                .build())
+                .withNodeData(getShardInfo())
                 //Standard healthchecks
                 .withHealthcheck(() -> {
                     for (Healthcheck healthcheck : healthchecks) {
@@ -137,13 +138,7 @@ public abstract class ServiceDiscoveryBundle<T extends Configuration> implements
             healthMonitors.forEach(serviceProviderBuilder::withIsolatedHealthMonitor);
         }
         serviceProvider = serviceProviderBuilder.buildServiceDiscovery();
-        serviceDiscoveryClient = ServiceDiscoveryClient.fromCurator()
-                                    .curator(curator)
-                                    .namespace(namespace)
-                                    .serviceName(serviceName)
-                                    .environment(serviceDiscoveryConfiguration.getEnvironment())
-                                    .objectMapper(environment.getObjectMapper())
-                                    .build();
+        serviceDiscoveryClient = buildServiceDiscoveryClient(namespace, serviceName, environment);
 
 
         environment.lifecycle().manage(new Managed() {
@@ -167,6 +162,60 @@ public abstract class ServiceDiscoveryBundle<T extends Configuration> implements
         environment.jersey().register(new InfoResource(serviceDiscoveryClient));
         environment.admin().addTask(new OORTask(rotationStatus));
         environment.admin().addTask(new BIRTask(rotationStatus));
+    }
+
+    protected ShardInfo getShardInfo(){
+        if(serviceDiscoveryConfiguration.getDistributionId() != null && serviceDiscoveryConfiguration.getDistributionProbability() != null){
+            ProximityShardInfo proximityShardInfo = DistributionShardInfo.builder()
+                    .distributionId(serviceDiscoveryConfiguration.getDistributionId()).build();
+            return ShardInfo.builder().environment(serviceDiscoveryConfiguration.getEnvironment())
+                    .proximityShardInfo(proximityShardInfo).build();
+        } else if((serviceDiscoveryConfiguration.getDcId() != null && serviceDiscoveryConfiguration.getDcProbability() != null) ||
+                (serviceDiscoveryConfiguration.getRackId() != null && serviceDiscoveryConfiguration.getRackProbability() != null) ||
+                (serviceDiscoveryConfiguration.getHost() != null && serviceDiscoveryConfiguration.getHostProbability() != null)) {
+            ProximityShardInfo proximityShardInfo = RackShardInfo.builder().dcId(serviceDiscoveryConfiguration.getDcId())
+                    .rackId(serviceDiscoveryConfiguration.getRackId()).host(serviceDiscoveryConfiguration.getHost()).build();
+            return ShardInfo.builder().environment(serviceDiscoveryConfiguration.getEnvironment())
+                    .proximityShardInfo(proximityShardInfo).build();
+        }
+        return ShardInfo.builder().environment(serviceDiscoveryConfiguration.getEnvironment()).build();
+    }
+
+    protected ServiceDiscoveryClient buildServiceDiscoveryClient(String namespace, String serviceName, Environment environment) throws Exception{
+        if(serviceDiscoveryConfiguration.getDistributionId() != null && serviceDiscoveryConfiguration.getDistributionProbability() != null){
+            return ServiceDiscoveryClient.fromCurator()
+                    .curator(curator)
+                    .namespace(namespace)
+                    .serviceName(serviceName)
+                    .environment(serviceDiscoveryConfiguration.getEnvironment())
+                    .objectMapper(environment.getObjectMapper())
+                    .distributionId(serviceDiscoveryConfiguration.getDistributionId())
+                    .distributionProbability(serviceDiscoveryConfiguration.getDistributionProbability())
+                    .build();
+        } else if((serviceDiscoveryConfiguration.getDcId() != null && serviceDiscoveryConfiguration.getDcProbability() != null) ||
+                (serviceDiscoveryConfiguration.getRackId() != null && serviceDiscoveryConfiguration.getRackProbability() != null) ||
+                (serviceDiscoveryConfiguration.getHost() != null && serviceDiscoveryConfiguration.getHostProbability() != null)) {
+            return ServiceDiscoveryClient.fromCurator()
+                    .curator(curator)
+                    .namespace(namespace)
+                    .serviceName(serviceName)
+                    .environment(serviceDiscoveryConfiguration.getEnvironment())
+                    .objectMapper(environment.getObjectMapper())
+                    .dcId(serviceDiscoveryConfiguration.getDcId())
+                    .dcProbability(serviceDiscoveryConfiguration.getDcProbability())
+                    .rackId(serviceDiscoveryConfiguration.getRackId())
+                    .rackProbability(serviceDiscoveryConfiguration.getRackProbability())
+                    .host(serviceDiscoveryConfiguration.getHost())
+                    .hostProbability(serviceDiscoveryConfiguration.getHostProbability())
+                    .build();
+        }
+        return ServiceDiscoveryClient.fromCurator()
+                .curator(curator)
+                .namespace(namespace)
+                .serviceName(serviceName)
+                .environment(serviceDiscoveryConfiguration.getEnvironment())
+                .objectMapper(environment.getObjectMapper())
+                .build();
     }
 
     protected abstract ServiceDiscoveryConfiguration getRangerConfiguration(T configuration);

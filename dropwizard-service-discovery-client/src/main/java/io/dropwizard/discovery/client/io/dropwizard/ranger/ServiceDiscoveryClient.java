@@ -22,6 +22,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.ranger.ServiceFinderBuilders;
 import com.flipkart.ranger.finder.sharded.SimpleShardedServiceFinder;
 import com.flipkart.ranger.model.ServiceNode;
+import io.dropwizard.discovery.common.DistributionShardInfo;
+import io.dropwizard.discovery.common.ProximityShardInfo;
+import io.dropwizard.discovery.common.RackShardInfo;
 import io.dropwizard.discovery.common.ShardInfo;
 import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
@@ -39,22 +42,43 @@ import java.util.Optional;
 public class ServiceDiscoveryClient {
     private final ShardInfo criteria;
     private SimpleShardedServiceFinder<ShardInfo> serviceFinder;
+    private ProximityShardSelector proximityShardSelector;
 
     @Builder(builderMethodName = "fromConnectionString", builderClassName = "FromConnectionStringBuilder")
     ServiceDiscoveryClient(String namespace, String serviceName, String environment,
-                           ObjectMapper objectMapper, String connectionString) throws Exception {
+                           ObjectMapper objectMapper, String connectionString, String distributionId, Double distributionProbability,
+                           String dcId, String rackId, String host, Double dcProbability, Double rackProbability, Double hostProbability) throws Exception {
         this(namespace, serviceName, environment, objectMapper,
-                CuratorFrameworkFactory.newClient(connectionString, new RetryForever(5000)));
+                CuratorFrameworkFactory.newClient(connectionString, new RetryForever(5000)),
+                        distributionId, distributionProbability, dcId, rackId, host, dcProbability, rackProbability, hostProbability);
     }
 
     @Builder(builderMethodName = "fromCurator", builderClassName = "FromCuratorBuilder")
     ServiceDiscoveryClient(String namespace, String serviceName, String environment,
-                           ObjectMapper objectMapper, CuratorFramework curator) throws Exception {
-        this.criteria = ShardInfo.builder().environment(environment).build();
+                           ObjectMapper objectMapper, CuratorFramework curator, String distributionId, Double distributionProbability,
+                           String dcId, String rackId, String host,
+                           Double dcProbability, Double rackProbability, Double hostProbability) throws Exception {
+        this.proximityShardSelector = new ProximityShardSelector();
+        if(distributionId != null && distributionProbability != null) {
+            ProximityShardInfo proximityShardInfo = DistributionShardInfo.builder().distributionId(distributionId).build();
+            this.criteria = ShardInfo.builder().environment(environment).proximityShardInfo(proximityShardInfo).build();
+            this.proximityShardSelector.setDistributionProbability(distributionProbability);
+            this.proximityShardSelector.setSelectorType(ProximityShardSelector.SelectorType.DISTRIBUTION);
+        } else if((dcId != null && dcProbability != null) || (rackId != null && rackProbability != null) || (host != null && hostProbability != null)){
+            ProximityShardInfo proximityShardInfo = RackShardInfo.builder().dcId(dcId).rackId(rackId).host(host).build();
+            this.criteria = ShardInfo.builder().environment(environment).proximityShardInfo(proximityShardInfo).build();
+            this.proximityShardSelector.setDcProbability(dcProbability);
+            this.proximityShardSelector.setRackProbability(rackProbability);
+            this.proximityShardSelector.setHostProbability(hostProbability);
+            this.proximityShardSelector.setSelectorType(ProximityShardSelector.SelectorType.RACK);
+        } else {
+            this.criteria = ShardInfo.builder().environment(environment).build();
+        }
         this.serviceFinder = ServiceFinderBuilders.<ShardInfo>shardedFinderBuilder()
                 .withCuratorFramework(curator)
                 .withNamespace(namespace)
                 .withServiceName(serviceName)
+                .withShardSelector(proximityShardSelector)
                 .withDeserializer(data -> {
                     try {
                         return objectMapper.readValue(data,
@@ -83,5 +107,4 @@ public class ServiceDiscoveryClient {
     public List<ServiceNode<ShardInfo>> getAllNodes() {
         return serviceFinder.getAll(criteria);
     }
-
 }

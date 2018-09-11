@@ -63,6 +63,22 @@ public class ServiceDiscoveryConfiguration {
 
     private boolean initialRotationStatus = true;
 
+    private Double distributionProbability;
+
+    private Double dcProbability;
+
+    private Double rackProbability;
+
+    private Double hostProbability;
+
+    private String distributionId;
+
+    private String dcId;
+
+    private String rackId;
+
+    private String host;
+
     @Builder
     public ServiceDiscoveryConfiguration(String namespace,
                                          String environment,
@@ -71,7 +87,15 @@ public class ServiceDiscoveryConfiguration {
                                          String publishedHost,
                                          int publishedPort,
                                          boolean initialRotationStatus,
-                                         long initialDelaySeconds) {
+                                         long initialDelaySeconds,
+                                         Double distributionProbability,
+                                         String distributionId,
+                                         String dcId,
+                                         String rackId,
+                                         String host,
+                                         Double dcProbability,
+                                         Double rackProbability,
+                                         Double hostProbability) {
         this.namespace = namespace;
         this.environment = environment;
         this.zookeeper = zookeeper;
@@ -80,5 +104,13 @@ public class ServiceDiscoveryConfiguration {
         this.publishedPort = publishedPort;
         this.initialRotationStatus = initialRotationStatus;
         this.initialDelaySeconds = initialDelaySeconds;
+        this.distributionProbability = distributionProbability;
+        this.dcProbability = distributionProbability;
+        this.rackProbability = rackProbability;
+        this.hostProbability = hostProbability;
+        this.distributionId = distributionId;
+        this.dcId = dcId;
+        this.rackId = rackId;
+        this.host = host;
     }
 }

@@ -30,4 +30,5 @@ import lombok.*;
 @ToString
 public class ShardInfo {
     private String environment;
+    private ProximityShardInfo proximityShardInfo;
 }
