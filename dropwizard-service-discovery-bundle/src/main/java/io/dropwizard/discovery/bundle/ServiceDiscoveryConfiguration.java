@@ -17,12 +17,14 @@
 
 package io.dropwizard.discovery.bundle;
 
+import io.dropwizard.discovery.common.NodeSelectorImpl;
 import lombok.*;
 import org.hibernate.validator.constraints.NotEmpty;
 
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
+import java.util.List;
 
 /**
  * Ranger configuration.
@@ -39,6 +41,8 @@ public class ServiceDiscoveryConfiguration {
     @NotNull
     @NotEmpty
     private String environment;
+
+    private List<String> locationAttributes;
 
     @NotNull
     @NotEmpty
@@ -63,9 +67,12 @@ public class ServiceDiscoveryConfiguration {
 
     private boolean initialRotationStatus = true;
 
+    private NodeSelectorImpl nodeSelectorImpl;
+
     @Builder
     public ServiceDiscoveryConfiguration(String namespace,
                                          String environment,
+                                         List<String> locationAttributes,
                                          String zookeeper,
                                          int connectionRetryIntervalMillis,
                                          String publishedHost,
@@ -74,6 +81,7 @@ public class ServiceDiscoveryConfiguration {
                                          long initialDelaySeconds) {
         this.namespace = namespace;
         this.environment = environment;
+        this.locationAttributes = locationAttributes;
         this.zookeeper = zookeeper;
         this.connectionRetryIntervalMillis = connectionRetryIntervalMillis;
         this.publishedHost = publishedHost;
