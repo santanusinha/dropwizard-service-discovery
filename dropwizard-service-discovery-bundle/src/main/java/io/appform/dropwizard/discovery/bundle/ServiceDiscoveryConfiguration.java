@@ -73,6 +73,8 @@ public class ServiceDiscoveryConfiguration {
 
     private int dropwizardCheckStaleness;
 
+    private boolean useZk34CompatibilityMode;
+
     @Builder
     public ServiceDiscoveryConfiguration(
             String namespace,
@@ -86,7 +88,8 @@ public class ServiceDiscoveryConfiguration {
             long initialDelaySeconds,
             boolean initialRotationStatus,
             int dropwizardCheckInterval,
-            int dropwizardCheckStaleness) {
+            int dropwizardCheckStaleness,
+            boolean useZk34CompatibilityMode) {
         this.namespace = Strings.isNullOrEmpty(namespace)
                          ? Constants.DEFAULT_NAMESPACE
                          : namespace;
@@ -109,5 +112,6 @@ public class ServiceDiscoveryConfiguration {
                                        ? Constants.DEFAULT_DW_CHECK_INTERVAl
                                        : dropwizardCheckInterval;
         this.dropwizardCheckStaleness = dropwizardCheckStaleness;
+        this.useZk34CompatibilityMode = useZk34CompatibilityMode;
     }
 }
