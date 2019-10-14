@@ -114,4 +114,5 @@ public class ServiceDiscoveryConfiguration {
         this.dropwizardCheckStaleness = dropwizardCheckStaleness;
         this.useZk34CompatibilityMode = useZk34CompatibilityMode;
     }
+
 }
