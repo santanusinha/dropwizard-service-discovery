@@ -185,7 +185,7 @@ public abstract class ServiceDiscoveryBundle<T extends Configuration> implements
                 .environment(serviceDiscoveryConfiguration.getEnvironment())
                 .objectMapper(environment.getObjectMapper())
                 .refreshTimeMs(serviceDiscoveryConfiguration.getRefreshTimeMs())
-                .disableWatchers(serviceDiscoveryConfiguration.isDisableWatchers())
+                .enableWatchers(serviceDiscoveryConfiguration.isEnableWatchers())
                 .build();
     }
 

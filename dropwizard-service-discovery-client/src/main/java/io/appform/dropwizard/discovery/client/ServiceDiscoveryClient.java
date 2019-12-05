@@ -48,14 +48,14 @@ public class ServiceDiscoveryClient {
             ObjectMapper objectMapper,
             String connectionString,
             int refreshTimeMs,
-            boolean disableWatchers) {
+            boolean enableWatchers) {
         this(namespace,
              serviceName,
              environment,
              objectMapper,
              CuratorFrameworkFactory.newClient(connectionString, new RetryForever(5000)),
              refreshTimeMs,
-             disableWatchers);
+             enableWatchers);
     }
 
     @Builder(builderMethodName = "fromCurator", builderClassName = "FromCuratorBuilder")
@@ -66,7 +66,7 @@ public class ServiceDiscoveryClient {
             ObjectMapper objectMapper,
             CuratorFramework curator,
             int refreshTimeMs,
-            boolean disableWatchers) {
+            boolean enableWatchers) {
 
         int effectiveRefreshTimeMs = refreshTimeMs;
         if (effectiveRefreshTimeMs < Constants.MINIMUM_REFRESH_TIME){
@@ -95,7 +95,7 @@ public class ServiceDiscoveryClient {
                     return null;
                 })
                 .withNodeRefreshIntervalMs(effectiveRefreshTimeMs)
-                .withDisableWatchers(disableWatchers)
+                .withDisableWatchers(!enableWatchers)
                 .build();
     }
 

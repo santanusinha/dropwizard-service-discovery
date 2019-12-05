@@ -60,7 +60,7 @@ public class ServiceDiscoveryConfiguration {
 
     private int refreshTimeMs;
 
-    private boolean disableWatchers;
+    private boolean enableWatchers;
 
     @Min(0)
     @Max(600)
@@ -82,7 +82,7 @@ public class ServiceDiscoveryConfiguration {
             String publishedHost,
             int publishedPort,
             int refreshTimeMs,
-            boolean disableWatchers,
+            boolean enableWatchers,
             long initialDelaySeconds,
             boolean initialRotationStatus,
             int dropwizardCheckInterval,
@@ -102,7 +102,7 @@ public class ServiceDiscoveryConfiguration {
                              ? Constants.DEFAULT_PORT
                              : publishedPort;
         this.refreshTimeMs = refreshTimeMs;
-        this.disableWatchers = disableWatchers;
+        this.enableWatchers = enableWatchers;
         this.initialDelaySeconds = initialDelaySeconds;
         this.initialRotationStatus = initialRotationStatus;
         this.dropwizardCheckInterval = dropwizardCheckInterval == 0
