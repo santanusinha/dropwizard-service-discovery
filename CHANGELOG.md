@@ -1,6 +1,11 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [1.3.13-5]
+
+### Changed
+- Optimized child node info read from ZK   
+
 
 ## [1.3.13-4]
 ### Added
