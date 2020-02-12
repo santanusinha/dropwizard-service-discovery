@@ -117,7 +117,7 @@
         <lombok.version>1.18.8</lombok.version>
         <guava.version>28.0-jre</guava.version>
         <junit.version>4.12</junit.version>
-        <ranger.version>0.6.2</ranger.version>
+        <ranger.version>0.6.3</ranger.version>
         <curator.version>4.2.0</curator.version>
     </properties>
 
