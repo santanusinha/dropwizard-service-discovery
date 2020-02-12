@@ -114,6 +114,7 @@ public abstract class ServiceDiscoveryBundle<T extends Configuration> implements
                 .connectString(serviceDiscoveryConfiguration.getZookeeper())
                 .namespace(namespace)
                 .retryPolicy(new RetryForever(serviceDiscoveryConfiguration.getConnectionRetryIntervalMillis()))
+                .zk34CompatibilityMode(serviceDiscoveryConfiguration.isUseZk34CompatibilityMode())
                 .build();
         serviceProvider = buildServiceProvider(
                 environment,
