@@ -22,7 +22,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.ranger.ServiceFinderBuilders;
 import com.flipkart.ranger.finder.sharded.SimpleShardedServiceFinder;
 import com.flipkart.ranger.model.ServiceNode;
-import io.appform.dropwizard.discovery.client.selector.EnvironmentAwareHierarchicalShardSelector;
+import io.appform.dropwizard.discovery.client.selector.HierarchicalEnvironmentAwareShardSelector;
 import io.appform.dropwizard.discovery.common.ShardInfo;
 import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
@@ -97,7 +97,7 @@ public class ServiceDiscoveryClient {
                 })
                 .withNodeRefreshIntervalMs(effectiveRefreshTimeMs)
                 .withDisableWatchers(disableWatchers)
-                .withShardSelector(new EnvironmentAwareHierarchicalShardSelector())
+                .withShardSelector(new HierarchicalEnvironmentAwareShardSelector())
                 .build();
     }
 

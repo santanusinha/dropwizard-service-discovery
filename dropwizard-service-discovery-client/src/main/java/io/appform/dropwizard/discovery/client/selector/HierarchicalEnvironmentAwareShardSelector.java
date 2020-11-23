@@ -11,7 +11,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
 
-public class EnvironmentAwareHierarchicalShardSelector implements ShardSelector<ShardInfo, MapBasedServiceRegistry<ShardInfo>> {
+public class HierarchicalEnvironmentAwareShardSelector implements ShardSelector<ShardInfo, MapBasedServiceRegistry<ShardInfo>> {
 
     private static final String separator = ".";
 
