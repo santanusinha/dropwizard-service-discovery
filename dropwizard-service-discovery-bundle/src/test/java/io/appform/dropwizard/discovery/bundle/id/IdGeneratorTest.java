@@ -162,7 +162,6 @@ public class IdGeneratorTest {
 
     @Test
     public void testParseSuccess(){
-        //prefix present
         String idString = "ABC2011250959030643972247";
         Optional<Id> idOptional = IdGenerator.parse(idString);
         Assert.assertTrue(idOptional.isPresent());
@@ -173,4 +172,19 @@ public class IdGeneratorTest {
         Assert.assertEquals(3972, id.getNode());
         Assert.assertEquals(new Date(1606278543064L), id.getGeneratedDate());
     }
+
+    @Test
+    public void testParseSuccessAfterGeneration(){
+        Id generatedId = IdGenerator.generate("TEST123");
+        Optional<Id> parsedIdOptional = IdGenerator.parse(generatedId.getId());
+        Assert.assertTrue(parsedIdOptional.isPresent());
+
+        Id parsedId = parsedIdOptional.get();
+        Assert.assertEquals(parsedId.getId(), generatedId.getId());
+        Assert.assertEquals(parsedId.getExponent(), generatedId.getExponent());
+        Assert.assertEquals(parsedId.getNode(), generatedId.getNode());
+        Assert.assertEquals(parsedId.getGeneratedDate(), generatedId.getGeneratedDate());
+    }
+
+
 }
