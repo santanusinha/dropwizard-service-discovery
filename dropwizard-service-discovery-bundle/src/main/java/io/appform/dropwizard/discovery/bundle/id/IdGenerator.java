@@ -79,6 +79,8 @@ public class IdGenerator {
             .retryIfResult(Objects::isNull)
             .retryIfResult(result -> result.getState().equals(IdValidationState.INVALID_RETRYABLE))
             .build();
+    private static final String patternString = "(.*)([0-9]{15})([0-9]{4})([0-9]{3})";
+    private static Pattern pattern = Pattern.compile(patternString);
 
     public static void initialize(int node) {
         nodeId = node;
@@ -191,10 +193,7 @@ public class IdGenerator {
             return Optional.empty();
         }
         try {
-            val minimumLengthString = idString.substring(idString.length() - MINIMUM_ID_LENGTH);
-            val patternString = "(.*)([0-9]{15})([0-9]{4})([0-9]{3})";
-            Pattern pattern = Pattern.compile(patternString);
-            Matcher matcher = pattern.matcher(minimumLengthString);
+            Matcher matcher = pattern.matcher(idString);
             if (matcher.find()) {
                 return Optional.of(Id.builder()
                         .id(idString)
