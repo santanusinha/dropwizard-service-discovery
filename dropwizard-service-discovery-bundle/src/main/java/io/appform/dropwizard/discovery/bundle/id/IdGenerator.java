@@ -26,7 +26,6 @@ import com.google.common.collect.ImmutableList;
 import io.appform.dropwizard.discovery.bundle.id.constraints.IdValidationConstraint;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import lombok.val;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;

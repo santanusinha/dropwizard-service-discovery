@@ -27,7 +27,6 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.Callable;
@@ -157,19 +156,6 @@ public class IdGeneratorTest {
         Assert.assertFalse(IdGenerator.parse("ABC2011250972030643972247").isPresent());
         //Invalid sec
         Assert.assertFalse(IdGenerator.parse("ABC2011250959720643972247").isPresent());
-    }
-
-    @Test
-    public void testParseSuccess(){
-        String idString = "ABC2011250959030643972247";
-        Optional<Id> idOptional = IdGenerator.parse(idString);
-        Assert.assertTrue(idOptional.isPresent());
-
-        Id id = idOptional.get();
-        Assert.assertEquals(idString, id.getId());
-        Assert.assertEquals(247, id.getExponent());
-        Assert.assertEquals(3972, id.getNode());
-        Assert.assertEquals(new Date(1606278543064L), id.getGeneratedDate());
     }
 
     @Test
