@@ -23,7 +23,6 @@ import io.appform.dropwizard.discovery.bundle.id.constraints.impl.JavaHashCodeBa
 import io.appform.dropwizard.discovery.bundle.id.constraints.impl.PartitionValidator;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import lombok.val;
 import org.junit.Assert;
 import org.junit.Test;
 
