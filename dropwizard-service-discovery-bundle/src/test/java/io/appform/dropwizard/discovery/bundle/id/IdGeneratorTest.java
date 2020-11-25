@@ -26,7 +26,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.Callable;
@@ -159,6 +164,20 @@ public class IdGeneratorTest {
     }
 
     @Test
+    public void testParseSuccess(){
+        String idString = "ABC2011250959030643972247";
+        Optional<Id> idOptional = IdGenerator.parse(idString);
+        Assert.assertTrue(idOptional.isPresent());
+
+        Id id = idOptional.get();
+        Assert.assertEquals(idString, id.getId());
+        Assert.assertEquals(247, id.getExponent());
+        Assert.assertEquals(3972, id.getNode());
+        Assert.assertEquals(generateDate(2020, 11, 25, 9, 59, 3, 64, ZoneId.systemDefault()),
+                id.getGeneratedDate());
+    }
+
+    @Test
     public void testParseSuccessAfterGeneration(){
         Id generatedId = IdGenerator.generate("TEST123");
         Optional<Id> parsedIdOptional = IdGenerator.parse(generatedId.getId());
@@ -169,6 +188,20 @@ public class IdGeneratorTest {
         Assert.assertEquals(parsedId.getExponent(), generatedId.getExponent());
         Assert.assertEquals(parsedId.getNode(), generatedId.getNode());
         Assert.assertEquals(parsedId.getGeneratedDate(), generatedId.getGeneratedDate());
+    }
+
+
+    private Date generateDate(int year, int month, int day, int hour, int min, int sec, int ms, ZoneId zoneId) {
+        return Date.from(
+                Instant.from(
+                        ZonedDateTime.of(
+                                LocalDateTime.of(
+                                        year, month, day, hour, min, sec, Math.multiplyExact(ms, 1000000)
+                                ),
+                                zoneId
+                        )
+                )
+        );
     }
 
 
