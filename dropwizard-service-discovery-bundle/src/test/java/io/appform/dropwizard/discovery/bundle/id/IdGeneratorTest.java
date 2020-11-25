@@ -144,6 +144,10 @@ public class IdGeneratorTest {
 
     @Test
     public void testParseFailure() {
+        //Null or Empty String
+        Assert.assertFalse(IdGenerator.parse(null).isPresent());
+        Assert.assertFalse(IdGenerator.parse("").isPresent());
+
         //Invalid length
         Assert.assertFalse(IdGenerator.parse("TEST").isPresent());
 

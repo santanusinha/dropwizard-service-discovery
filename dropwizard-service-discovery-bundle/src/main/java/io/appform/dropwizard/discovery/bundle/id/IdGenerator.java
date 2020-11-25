@@ -188,7 +188,8 @@ public class IdGenerator {
      * @return Id if it could be generated
      */
     public static Optional<Id> parse(final String idString) {
-        if (idString.length() < MINIMUM_ID_LENGTH) {
+        if (idString == null
+                || idString.length() < MINIMUM_ID_LENGTH) {
             return Optional.empty();
         }
         try {
