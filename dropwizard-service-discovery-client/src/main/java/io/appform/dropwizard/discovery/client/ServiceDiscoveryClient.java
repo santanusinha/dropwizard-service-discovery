@@ -117,4 +117,18 @@ public class ServiceDiscoveryClient {
         return serviceFinder.getAll(criteria);
     }
 
+    public Optional<ServiceNode<ShardInfo>> getNode(final String environment) {
+        return Optional.ofNullable(serviceFinder.get(ShardInfo.builder()
+                .environment(environment)
+                .build()));
+    }
+
+    public List<ServiceNode<ShardInfo>> getAllNodes(final String environemnt) {
+        return serviceFinder.getAll(ShardInfo.builder()
+                .environment(environemnt)
+                .build());
+    }
+
+
+
 }
