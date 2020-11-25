@@ -49,7 +49,7 @@ import java.util.regex.Pattern;
 @Slf4j
 public class IdGenerator {
 
-    public static final int MINIMUM_ID_LENGTH = 22;
+    private static final int MINIMUM_ID_LENGTH = 22;
 
     private enum IdValidationState {
         VALID,
