@@ -31,14 +31,24 @@ import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
 import java.security.SecureRandom;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.ExecutionException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Id generation
  */
 @Slf4j
 public class IdGenerator {
+
+    private static final int MINIMUM_ID_LENGTH = 22;
 
     private enum IdValidationState {
         VALID,
@@ -68,6 +78,8 @@ public class IdGenerator {
             .retryIfResult(Objects::isNull)
             .retryIfResult(result -> result.getState().equals(IdValidationState.INVALID_RETRYABLE))
             .build();
+    private static final String patternString = "(.*)([0-9]{15})([0-9]{4})([0-9]{3})";
+    private static Pattern pattern = Pattern.compile(patternString);
 
     public static void initialize(int node) {
         nodeId = node;
@@ -167,6 +179,34 @@ public class IdGenerator {
      */
     public static Optional<Id> generateWithConstraints(String prefix, final List<IdValidationConstraint> inConstraints) {
         return generateWithConstraints(prefix, inConstraints, false);
+    }
+
+    /**
+     * Generate id by parsing given string
+     *
+     * @param idString String idString
+     * @return Id if it could be generated
+     */
+    public static Optional<Id> parse(final String idString) {
+        if (idString == null
+                || idString.length() < MINIMUM_ID_LENGTH) {
+            return Optional.empty();
+        }
+        try {
+            Matcher matcher = pattern.matcher(idString);
+            if (matcher.find()) {
+                return Optional.of(Id.builder()
+                        .id(idString)
+                        .node(Integer.parseInt(matcher.group(3)))
+                        .exponent(Integer.parseInt(matcher.group(4)))
+                        .generatedDate(formatter.parseDateTime(matcher.group(2)).toDate())
+                        .build());
+            }
+            return Optional.empty();
+        } catch (Exception e) {
+            log.warn("Could not parse idString {}", e.getMessage());
+            return Optional.empty();
+        }
     }
 
     @Data
