@@ -6,19 +6,20 @@ import com.flipkart.ranger.model.ShardSelector;
 import com.google.common.base.Strings;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Lists;
+import io.appform.dropwizard.discovery.client.Constants;
 import io.appform.dropwizard.discovery.common.ShardInfo;
 import lombok.val;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
 public class HierarchicalEnvironmentAwareShardSelector implements ShardSelector<ShardInfo, MapBasedServiceRegistry<ShardInfo>> {
 
-    private static final String separator = ".";
-    public static final String all = "*";
+    private static final String SEPARATOR = ".";
 
     @Override
     public List<ServiceNode<ShardInfo>> nodes(final ShardInfo criteria,
@@ -27,7 +28,7 @@ public class HierarchicalEnvironmentAwareShardSelector implements ShardSelector<
 
         String environment = criteria.getEnvironment();
 
-        if (Objects.equals(environment, all)) {
+        if (Objects.equals(environment, Constants.ALL_ENV)) {
             return allNodes(serviceNodes);
         }
 
@@ -39,14 +40,14 @@ public class HierarchicalEnvironmentAwareShardSelector implements ShardSelector<
                 return currentEnvNodes;
             }
 
-            if (!environment.contains(separator)){
-                return Lists.newArrayList();
+            if (!environment.contains(SEPARATOR)){
+                return Collections.emptyList();
             }
 
 
-            environment = StringUtils.substringBeforeLast(environment, separator);
+            environment = StringUtils.substringBeforeLast(environment, SEPARATOR);
         }
-        return Lists.newArrayList();
+        return Collections.emptyList();
     }
 
     private List<ServiceNode<ShardInfo>> allNodes(ListMultimap<ShardInfo, ServiceNode<ShardInfo>> serviceNodes) {

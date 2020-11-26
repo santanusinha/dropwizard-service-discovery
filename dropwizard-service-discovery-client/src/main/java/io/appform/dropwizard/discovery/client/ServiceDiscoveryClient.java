@@ -22,7 +22,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.ranger.ServiceFinderBuilders;
 import com.flipkart.ranger.finder.sharded.SimpleShardedServiceFinder;
 import com.flipkart.ranger.model.ServiceNode;
-import com.google.common.base.Strings;
 import io.appform.dropwizard.discovery.client.selector.HierarchicalEnvironmentAwareShardSelector;
 import io.appform.dropwizard.discovery.common.ShardInfo;
 import lombok.Builder;
@@ -110,27 +109,19 @@ public class ServiceDiscoveryClient {
     }
 
     public Optional<ServiceNode<ShardInfo>> getNode() {
-        return Optional.ofNullable(serviceFinder.get(criteria));
+        return getNode(criteria);
     }
 
     public List<ServiceNode<ShardInfo>> getAllNodes() {
-        return serviceFinder.getAll(criteria);
+        return getAllNodes(criteria);
     }
 
-    public Optional<ServiceNode<ShardInfo>> getNode(final String environment) {
-        return Strings.isNullOrEmpty(environment)
-                ? getNode()
-                : Optional.ofNullable(serviceFinder.get(ShardInfo.builder()
-                        .environment(environment)
-                        .build()));
+    public Optional<ServiceNode<ShardInfo>> getNode(final ShardInfo shardInfo) {
+            return Optional.ofNullable(serviceFinder.get(shardInfo));
     }
 
-    public List<ServiceNode<ShardInfo>> getAllNodes(final String environemnt) {
-        return Strings.isNullOrEmpty(environemnt)
-                ? getAllNodes()
-                : serviceFinder.getAll(ShardInfo.builder()
-                .environment(environemnt)
-                .build());
+    public List<ServiceNode<ShardInfo>> getAllNodes(final ShardInfo shardInfo) {
+        return serviceFinder.getAll(shardInfo);
     }
 
 
