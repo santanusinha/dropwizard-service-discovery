@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.ranger.ServiceFinderBuilders;
 import com.flipkart.ranger.finder.sharded.SimpleShardedServiceFinder;
 import com.flipkart.ranger.model.ServiceNode;
+import com.google.common.base.Strings;
 import io.appform.dropwizard.discovery.client.selector.HierarchicalEnvironmentAwareShardSelector;
 import io.appform.dropwizard.discovery.common.ShardInfo;
 import lombok.Builder;
@@ -51,12 +52,12 @@ public class ServiceDiscoveryClient {
             int refreshTimeMs,
             boolean disableWatchers) {
         this(namespace,
-             serviceName,
-             environment,
-             objectMapper,
-             CuratorFrameworkFactory.newClient(connectionString, new RetryForever(5000)),
-             refreshTimeMs,
-             disableWatchers);
+                serviceName,
+                environment,
+                objectMapper,
+                CuratorFrameworkFactory.newClient(connectionString, new RetryForever(5000)),
+                refreshTimeMs,
+                disableWatchers);
     }
 
     @Builder(builderMethodName = "fromCurator", builderClassName = "FromCuratorBuilder")
@@ -70,7 +71,7 @@ public class ServiceDiscoveryClient {
             boolean disableWatchers) {
 
         int effectiveRefreshTimeMs = refreshTimeMs;
-        if (effectiveRefreshTimeMs < Constants.MINIMUM_REFRESH_TIME){
+        if (effectiveRefreshTimeMs < Constants.MINIMUM_REFRESH_TIME) {
             effectiveRefreshTimeMs = Constants.MINIMUM_REFRESH_TIME;
             log.warn("Node info update interval too low: {} ms. Has been upgraded to {} ms ",
                     refreshTimeMs,
@@ -87,10 +88,9 @@ public class ServiceDiscoveryClient {
                 .withDeserializer(data -> {
                     try {
                         return objectMapper.readValue(data,
-                                                      new TypeReference<ServiceNode<ShardInfo>>() {
-                                                      });
-                    }
-                    catch (Exception e) {
+                                new TypeReference<ServiceNode<ShardInfo>>() {
+                                });
+                    } catch (Exception e) {
                         log.warn("Could not parse node data", e);
                     }
                     return null;
@@ -118,17 +118,20 @@ public class ServiceDiscoveryClient {
     }
 
     public Optional<ServiceNode<ShardInfo>> getNode(final String environment) {
-        return Optional.ofNullable(serviceFinder.get(ShardInfo.builder()
-                .environment(environment)
-                .build()));
+        return Strings.isNullOrEmpty(environment)
+                ? getNode()
+                : Optional.ofNullable(serviceFinder.get(ShardInfo.builder()
+                        .environment(environment)
+                        .build()));
     }
 
     public List<ServiceNode<ShardInfo>> getAllNodes(final String environemnt) {
-        return serviceFinder.getAll(ShardInfo.builder()
+        return Strings.isNullOrEmpty(environemnt)
+                ? getAllNodes()
+                : serviceFinder.getAll(ShardInfo.builder()
                 .environment(environemnt)
                 .build());
     }
-
 
 
 }
