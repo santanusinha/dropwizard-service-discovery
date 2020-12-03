@@ -17,11 +17,13 @@
 
 package io.appform.dropwizard.discovery.bundle.rotationstatus;
 
-import com.google.common.collect.ImmutableMultimap;
+
 import io.dropwizard.servlets.tasks.Task;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.PrintWriter;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Admin task to take node bir in ranger
@@ -35,7 +37,7 @@ public class BIRTask extends Task {
     }
 
     @Override
-    public void execute(ImmutableMultimap<String, String> immutableMultimap, PrintWriter printWriter) throws Exception {
+    public void execute(Map<String, List<String>> parameters, PrintWriter printWriter) throws Exception {
         rotationStatus.bir();
         log.info("Taking node back into rotation on ranger");
     }

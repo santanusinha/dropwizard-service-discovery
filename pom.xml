@@ -113,10 +113,10 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <dropwizard.version>1.3.13</dropwizard.version>
+        <dropwizard.version>2.0.16</dropwizard.version>
         <lombok.version>1.18.8</lombok.version>
         <guava.version>28.0-jre</guava.version>
-        <junit.version>4.12</junit.version>
+        <junit.version>5.7.0</junit.version>
         <ranger.version>0.6.3</ranger.version>
         <curator.version>4.2.0</curator.version>
     </properties>
@@ -178,9 +178,10 @@
             <version>${curator.version}</version>
         </dependency>
 
+        <!-- https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-api -->
         <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-api</artifactId>
             <version>${junit.version}</version>
             <scope>test</scope>
         </dependency>
@@ -208,24 +209,20 @@
         </pluginManagement>
         <plugins>
             <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>cobertura-maven-plugin</artifactId>
-                <version>2.7</version>
-                <configuration>
-                    <check>
-                        <branchRate>70</branchRate>
-                        <lineRate>70</lineRate>
-                        <haltOnFailure>false</haltOnFailure>
-                        <totalBranchRate>70</totalBranchRate>
-                        <totalLineRate>70</totalLineRate>
-                        <packageLineRate>70</packageLineRate>
-                        <packageBranchRate>70</packageBranchRate>
-                    </check>
-                </configuration>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>0.8.6</version>
                 <executions>
                     <execution>
                         <goals>
-                            <goal>clean</goal>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>report</id>
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>report</goal>
                         </goals>
                     </execution>
                 </executions>
@@ -303,13 +300,4 @@
             </build>
         </profile>
     </profiles>
-    <reporting>
-        <plugins>
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>cobertura-maven-plugin</artifactId>
-                <version>2.7</version>
-            </plugin>
-        </plugins>
-    </reporting>
 </project>

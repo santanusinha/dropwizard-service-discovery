@@ -19,6 +19,7 @@ package io.appform.dropwizard.discovery.bundle;
 
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
+import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.health.HealthCheckRegistry;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.ranger.healthcheck.HealthcheckStatus;
@@ -57,7 +58,8 @@ public class ServiceDiscoveryBundleCustomHostPortTest {
 
     private final HealthCheckRegistry healthChecks = mock(HealthCheckRegistry.class);
     private final JerseyEnvironment jerseyEnvironment = mock(JerseyEnvironment.class);
-    private final LifecycleEnvironment lifecycleEnvironment = new LifecycleEnvironment();
+    private final MetricRegistry metricRegistry = mock(MetricRegistry.class);
+    private final LifecycleEnvironment lifecycleEnvironment = new LifecycleEnvironment(metricRegistry);
     private final Environment environment = mock(Environment.class);
     private final Bootstrap<?> bootstrap = mock(Bootstrap.class);
     private final Configuration configuration = mock(Configuration.class);
