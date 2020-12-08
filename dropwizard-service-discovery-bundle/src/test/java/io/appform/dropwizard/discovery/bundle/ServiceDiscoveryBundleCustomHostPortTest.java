@@ -37,9 +37,11 @@ import io.dropwizard.setup.Environment;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.curator.test.TestingCluster;
 import org.eclipse.jetty.util.component.LifeCycle;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
@@ -48,7 +50,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -97,7 +98,7 @@ public class ServiceDiscoveryBundleCustomHostPortTest {
     private final TestingCluster testingCluster = new TestingCluster(1);
     private HealthcheckStatus status = HealthcheckStatus.healthy;
 
-    @Before
+    @BeforeEach
     public void setup() throws Exception {
 
         when(jerseyEnvironment.getResourceConfig()).thenReturn(new DropwizardResourceConfig());
@@ -129,7 +130,7 @@ public class ServiceDiscoveryBundleCustomHostPortTest {
         bundle.registerHealthcheck(() -> status);
     }
 
-    @After
+    @AfterEach
     public void tearDown() throws Exception {
         for (LifeCycle lifeCycle: lifecycleEnvironment.getManagedObjects()){
             lifeCycle.stop();
@@ -140,14 +141,14 @@ public class ServiceDiscoveryBundleCustomHostPortTest {
     @Test
     public void testDiscovery() throws Exception {
         Optional<ServiceNode<ShardInfo>> info = bundle.getServiceDiscoveryClient().getNode();
-        assertTrue(info.isPresent());
-        assertEquals("testing", info.get().getNodeData().getEnvironment());
-        assertEquals("CustomHost", info.get().getHost());
-        assertEquals(21000, info.get().getPort());
+        Assertions.assertTrue(info.isPresent());
+        Assertions.assertEquals("testing", info.get().getNodeData().getEnvironment());
+        Assertions.assertEquals("CustomHost", info.get().getHost());
+        Assertions.assertEquals(21000, info.get().getPort());
         status = HealthcheckStatus.unhealthy;
 
         Thread.sleep(10000);
         info = bundle.getServiceDiscoveryClient().getNode();
-        assertFalse(info.isPresent());
+        Assertions.assertFalse(info.isPresent());
     }
 }

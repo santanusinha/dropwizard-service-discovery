@@ -23,8 +23,9 @@ import io.appform.dropwizard.discovery.bundle.id.constraints.impl.JavaHashCodeBa
 import io.appform.dropwizard.discovery.bundle.id.constraints.impl.PartitionValidator;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+
 
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -73,7 +74,7 @@ public class IdGeneratorTest {
         public Long call() throws Exception {
             while (!stop) {
                 Optional<Id> id = IdGenerator.generateWithConstraints("X", Collections.singletonList(constraint));
-                Assert.assertTrue(id.isPresent());
+                Assertions.assertTrue(id.isPresent());
                 count++;
             };
             return count;
@@ -102,7 +103,7 @@ public class IdGeneratorTest {
 
         log.debug("Generated ID count: {}", totalCount);
         log.debug("Generated ID rate: {}/sec", totalCount/10);
-        Assert.assertTrue(totalCount > 0);
+        Assertions.assertTrue(totalCount > 0);
 
     }
 
@@ -129,14 +130,14 @@ public class IdGeneratorTest {
 
         log.debug("Generated ID count: {}", totalCount);
         log.debug("Generated ID rate: {}/sec", totalCount/10);
-        Assert.assertTrue(totalCount > 0);
+        Assertions.assertTrue(totalCount > 0);
 
     }
 
     @Test
     public void testConstraintFailure() {
         IdGenerator.initialize(23);
-        Assert.assertFalse(IdGenerator.generateWithConstraints(
+        Assertions.assertFalse(IdGenerator.generateWithConstraints(
                 "TST",
                 ImmutableList.of(id -> false),
                 false).isPresent());
@@ -145,39 +146,39 @@ public class IdGeneratorTest {
     @Test
     public void testParseFailure() {
         //Null or Empty String
-        Assert.assertFalse(IdGenerator.parse(null).isPresent());
-        Assert.assertFalse(IdGenerator.parse("").isPresent());
+        Assertions.assertFalse(IdGenerator.parse(null).isPresent());
+        Assertions.assertFalse(IdGenerator.parse("").isPresent());
 
         //Invalid length
-        Assert.assertFalse(IdGenerator.parse("TEST").isPresent());
+        Assertions.assertFalse(IdGenerator.parse("TEST").isPresent());
 
         //Invalid chars
-        Assert.assertFalse(IdGenerator.parse("XCL983dfb1ee0a847cd9e7321fcabc2f223").isPresent());
-        Assert.assertFalse(IdGenerator.parse("XCL98-3df-b1e:e0a847cd9e7321fcabc2f223").isPresent());
+        Assertions.assertFalse(IdGenerator.parse("XCL983dfb1ee0a847cd9e7321fcabc2f223").isPresent());
+        Assertions.assertFalse(IdGenerator.parse("XCL98-3df-b1e:e0a847cd9e7321fcabc2f223").isPresent());
 
         //Invalid month
-        Assert.assertFalse(IdGenerator.parse("ABC2032250959030643972247").isPresent());
+        Assertions.assertFalse(IdGenerator.parse("ABC2032250959030643972247").isPresent());
         //Invalid date
-        Assert.assertFalse(IdGenerator.parse("ABC2011450959030643972247").isPresent());
+        Assertions.assertFalse(IdGenerator.parse("ABC2011450959030643972247").isPresent());
         //Invalid hour
-        Assert.assertFalse(IdGenerator.parse("ABC2011259659030643972247").isPresent());
+        Assertions.assertFalse(IdGenerator.parse("ABC2011259659030643972247").isPresent());
         //Invalid minute
-        Assert.assertFalse(IdGenerator.parse("ABC2011250972030643972247").isPresent());
+        Assertions.assertFalse(IdGenerator.parse("ABC2011250972030643972247").isPresent());
         //Invalid sec
-        Assert.assertFalse(IdGenerator.parse("ABC2011250959720643972247").isPresent());
+        Assertions.assertFalse(IdGenerator.parse("ABC2011250959720643972247").isPresent());
     }
 
     @Test
     public void testParseSuccess(){
         String idString = "ABC2011250959030643972247";
         Optional<Id> idOptional = IdGenerator.parse(idString);
-        Assert.assertTrue(idOptional.isPresent());
+        Assertions.assertTrue(idOptional.isPresent());
 
         Id id = idOptional.get();
-        Assert.assertEquals(idString, id.getId());
-        Assert.assertEquals(247, id.getExponent());
-        Assert.assertEquals(3972, id.getNode());
-        Assert.assertEquals(generateDate(2020, 11, 25, 9, 59, 3, 64, ZoneId.systemDefault()),
+        Assertions.assertEquals(idString, id.getId());
+        Assertions.assertEquals(247, id.getExponent());
+        Assertions.assertEquals(3972, id.getNode());
+        Assertions.assertEquals(generateDate(2020, 11, 25, 9, 59, 3, 64, ZoneId.systemDefault()),
                 id.getGeneratedDate());
     }
 
@@ -185,13 +186,13 @@ public class IdGeneratorTest {
     public void testParseSuccessAfterGeneration(){
         Id generatedId = IdGenerator.generate("TEST123");
         Optional<Id> parsedIdOptional = IdGenerator.parse(generatedId.getId());
-        Assert.assertTrue(parsedIdOptional.isPresent());
+        Assertions.assertTrue(parsedIdOptional.isPresent());
 
         Id parsedId = parsedIdOptional.get();
-        Assert.assertEquals(parsedId.getId(), generatedId.getId());
-        Assert.assertEquals(parsedId.getExponent(), generatedId.getExponent());
-        Assert.assertEquals(parsedId.getNode(), generatedId.getNode());
-        Assert.assertEquals(parsedId.getGeneratedDate(), generatedId.getGeneratedDate());
+        Assertions.assertEquals(parsedId.getId(), generatedId.getId());
+        Assertions.assertEquals(parsedId.getExponent(), generatedId.getExponent());
+        Assertions.assertEquals(parsedId.getNode(), generatedId.getNode());
+        Assertions.assertEquals(parsedId.getGeneratedDate(), generatedId.getGeneratedDate());
     }
 
 
