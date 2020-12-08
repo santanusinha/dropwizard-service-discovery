@@ -19,6 +19,7 @@ package io.appform.dropwizard.discovery.bundle;
 
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
+import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.health.HealthCheckRegistry;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.ranger.healthcheck.HealthcheckStatus;
@@ -37,9 +38,11 @@ import io.dropwizard.setup.Environment;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.curator.test.TestingCluster;
 import org.eclipse.jetty.util.component.LifeCycle;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
@@ -48,7 +51,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -58,7 +60,8 @@ public class ServiceDiscoveryBundleRotationTest {
 
     private final HealthCheckRegistry healthChecks = mock(HealthCheckRegistry.class);
     private final JerseyEnvironment jerseyEnvironment = mock(JerseyEnvironment.class);
-    private final LifecycleEnvironment lifecycleEnvironment = new LifecycleEnvironment();
+    private final MetricRegistry metricRegistry = mock(MetricRegistry.class);
+    private final LifecycleEnvironment lifecycleEnvironment = new LifecycleEnvironment(metricRegistry);
     private final Environment environment = mock(Environment.class);
     private final Bootstrap<?> bootstrap = mock(Bootstrap.class);
     private final Configuration configuration = mock(Configuration.class);
@@ -86,7 +89,7 @@ public class ServiceDiscoveryBundleRotationTest {
     private final TestingCluster testingCluster = new TestingCluster(1);
     private RotationStatus rotationStatus;
 
-    @Before
+    @BeforeEach
     public void setup() throws Exception {
 
         when(jerseyEnvironment.getResourceConfig()).thenReturn(new DropwizardResourceConfig());
@@ -118,7 +121,7 @@ public class ServiceDiscoveryBundleRotationTest {
         }
     }
 
-    @After
+    @AfterEach
     public void tearDown() throws Exception {
         for (LifeCycle lifeCycle: lifecycleEnvironment.getManagedObjects()){
             lifeCycle.stop();
@@ -130,23 +133,23 @@ public class ServiceDiscoveryBundleRotationTest {
     public void testDiscovery() throws Exception {
         Optional<ServiceNode<ShardInfo>> info = bundle.getServiceDiscoveryClient().getNode();
         Thread.sleep(1000);
-        assertTrue(info.isPresent());
-        assertEquals("testing", info.get().getNodeData().getEnvironment());
-        assertEquals("TestHost", info.get().getHost());
-        assertEquals(8021, info.get().getPort());
+        Assertions.assertTrue(info.isPresent());
+        Assertions.assertEquals("testing", info.get().getNodeData().getEnvironment());
+        Assertions.assertEquals("TestHost", info.get().getHost());
+        Assertions.assertEquals(8021, info.get().getPort());
 
         OORTask oorTask = new OORTask(rotationStatus);
         oorTask.execute(null, null);
 
         Thread.sleep(10000);
         info = bundle.getServiceDiscoveryClient().getNode();
-        assertFalse(info.isPresent());
+        Assertions.assertFalse(info.isPresent());
 
         BIRTask birTask = new BIRTask(rotationStatus);
         birTask.execute(null, null);
         Thread.sleep(10000);
 
         info = bundle.getServiceDiscoveryClient().getNode();
-        assertTrue(info.isPresent());
+        Assertions.assertTrue(info.isPresent());
     }
 }

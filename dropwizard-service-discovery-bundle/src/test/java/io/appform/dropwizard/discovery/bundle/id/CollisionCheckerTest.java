@@ -17,8 +17,9 @@
 
 package io.appform.dropwizard.discovery.bundle.id;
 
-import org.junit.Assert;
-import org.junit.Test;
+
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 /**
  * Test on {@link CollisionChecker}
@@ -28,11 +29,11 @@ public class CollisionCheckerTest {
     @Test
     public void testCheck() throws Exception {
         CollisionChecker collisionChecker = new CollisionChecker();
-        Assert.assertTrue(collisionChecker.check(100, 1));
-        Assert.assertFalse(collisionChecker.check(100, 1));
+        Assertions.assertTrue(collisionChecker.check(100, 1));
+        Assertions.assertFalse(collisionChecker.check(100, 1));
         for (int i = 0; i < 1000; i++) {
-            Assert.assertTrue(collisionChecker.check(101, i));
-            Assert.assertFalse(collisionChecker.check(101, i));
+            Assertions.assertTrue(collisionChecker.check(101, i));
+            Assertions.assertFalse(collisionChecker.check(101, i));
         }
 
     }
