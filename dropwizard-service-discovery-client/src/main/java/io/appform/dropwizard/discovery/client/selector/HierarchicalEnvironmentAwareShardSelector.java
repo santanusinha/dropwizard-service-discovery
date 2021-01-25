@@ -27,7 +27,6 @@ public class HierarchicalEnvironmentAwareShardSelector implements ShardSelector<
                                               final MapBasedServiceRegistry<ShardInfo> serviceRegistry) {
         val serviceNodes = serviceRegistry.nodes();
         val serviceName = serviceRegistry.getService().getServiceName();
-
         String environment = criteria.getEnvironment();
 
         if (Objects.equals(environment, Constants.ALL_ENV)) {
