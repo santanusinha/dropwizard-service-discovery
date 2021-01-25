@@ -5,9 +5,9 @@ import com.flipkart.ranger.model.ServiceNode;
 import com.flipkart.ranger.model.ShardSelector;
 import com.google.common.base.Strings;
 import com.google.common.collect.ListMultimap;
-import com.google.common.collect.Lists;
 import io.appform.dropwizard.discovery.client.Constants;
 import io.appform.dropwizard.discovery.common.ShardInfo;
+import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.apache.commons.lang3.StringUtils;
 
@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+@Slf4j
 public class HierarchicalEnvironmentAwareShardSelector implements ShardSelector<ShardInfo, MapBasedServiceRegistry<ShardInfo>> {
 
     private static final String SEPARATOR = ".";
@@ -25,6 +26,7 @@ public class HierarchicalEnvironmentAwareShardSelector implements ShardSelector<
     public List<ServiceNode<ShardInfo>> nodes(final ShardInfo criteria,
                                               final MapBasedServiceRegistry<ShardInfo> serviceRegistry) {
         val serviceNodes = serviceRegistry.nodes();
+        val serviceName = serviceRegistry.getService().getServiceName();
 
         String environment = criteria.getEnvironment();
 
@@ -37,13 +39,14 @@ public class HierarchicalEnvironmentAwareShardSelector implements ShardSelector<
                     .environment(environment)
                     .build());
             if (!currentEnvNodes.isEmpty()) {
+                log.debug("Effective environment for discovery of {} is {}", serviceName, environment);
                 return currentEnvNodes;
             }
 
-            if (!environment.contains(SEPARATOR)){
+            if (!environment.contains(SEPARATOR)) {
+                log.debug("Effective environment for discovery of {} is {}", serviceName, environment);
                 return Collections.emptyList();
             }
-
 
             environment = StringUtils.substringBeforeLast(environment, SEPARATOR);
         }
