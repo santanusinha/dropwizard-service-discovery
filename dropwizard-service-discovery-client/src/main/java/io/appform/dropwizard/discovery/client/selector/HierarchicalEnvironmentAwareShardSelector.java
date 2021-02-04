@@ -18,8 +18,6 @@ import java.util.stream.Collectors;
 @Slf4j
 public class HierarchicalEnvironmentAwareShardSelector implements ShardSelector<ShardInfo, MapBasedServiceRegistry<ShardInfo>> {
 
-    private static final String SEPARATOR = ".";
-
     @Override
     public List<ServiceNode<ShardInfo>> nodes(final ShardInfo criteria,
                                               final MapBasedServiceRegistry<ShardInfo> serviceRegistry) {
