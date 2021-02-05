@@ -89,7 +89,8 @@ public class ServiceDiscoveryClient {
                         return objectMapper.readValue(data,
                                 new TypeReference<ServiceNode<ShardInfo>>() {
                                 });
-                    } catch (Exception e) {
+                    }
+                    catch (Exception e) {
                         log.warn("Could not parse node data", e);
                     }
                     return null;
