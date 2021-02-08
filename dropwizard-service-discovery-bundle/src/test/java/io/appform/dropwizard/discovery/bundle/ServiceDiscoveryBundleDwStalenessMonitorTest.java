@@ -40,8 +40,6 @@ import org.junit.Test;
 import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicLong;
 
 import static io.appform.dropwizard.discovery.bundle.TestUtils.assertNodeAbsence;
 import static io.appform.dropwizard.discovery.bundle.TestUtils.assertNodePresence;
@@ -97,8 +95,6 @@ public class ServiceDiscoveryBundleDwStalenessMonitorTest {
     @Before
     public void setup() throws Exception {
         healthChecks.register("healthy-once-but-then-sleep5", new HealthCheck() {
-            private AtomicInteger counter = new AtomicInteger(1);
-            private AtomicLong lastUpdatedTime = new AtomicLong();
 
             @Override
             protected Result check() throws Exception {
