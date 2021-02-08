@@ -21,7 +21,6 @@ import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import com.codahale.metrics.health.HealthCheckRegistry;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.flipkart.ranger.healthcheck.HealthcheckStatus;
 import com.flipkart.ranger.model.ServiceNode;
 import io.appform.dropwizard.discovery.bundle.rotationstatus.BIRTask;
 import io.appform.dropwizard.discovery.bundle.rotationstatus.OORTask;
@@ -42,11 +41,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.util.Optional;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -129,7 +124,7 @@ public class ServiceDiscoveryBundleRotationTest {
     @Test
     public void testDiscovery() throws Exception {
         Optional<ServiceNode<ShardInfo>> info = bundle.getServiceDiscoveryClient().getNode();
-        Thread.sleep(1000);
+        Thread.sleep(3000);
         assertTrue(info.isPresent());
         assertEquals("testing", info.get().getNodeData().getEnvironment());
         assertEquals("TestHost", info.get().getHost());
