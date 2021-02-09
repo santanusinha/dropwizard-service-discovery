@@ -23,8 +23,6 @@ import com.codahale.metrics.health.HealthCheck;
 import com.codahale.metrics.health.HealthCheckRegistry;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.ranger.healthcheck.HealthcheckStatus;
-import com.flipkart.ranger.model.ServiceNode;
-import io.appform.dropwizard.discovery.common.ShardInfo;
 import io.dropwizard.Configuration;
 import io.dropwizard.jersey.DropwizardResourceConfig;
 import io.dropwizard.jersey.setup.JerseyEnvironment;
@@ -33,6 +31,7 @@ import io.dropwizard.setup.AdminEnvironment;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 import lombok.extern.slf4j.Slf4j;
+import lombok.val;
 import org.apache.curator.test.TestingCluster;
 import org.eclipse.jetty.util.component.LifeCycle;
 import org.junit.After;
@@ -40,14 +39,12 @@ import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-import java.util.Optional;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
 
-import static org.junit.Assert.*;
+import static io.appform.dropwizard.discovery.bundle.TestUtils.assertNodeAbsence;
+import static io.appform.dropwizard.discovery.bundle.TestUtils.assertNodePresence;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -93,16 +90,16 @@ public class ServiceDiscoveryBundleDwStalenessMonitorTest {
     private ServiceDiscoveryConfiguration serviceDiscoveryConfiguration;
     private final TestingCluster testingCluster = new TestingCluster(1);
     private HealthcheckStatus status = HealthcheckStatus.healthy;
+    private AtomicBoolean healthySucceeded = new AtomicBoolean(false);
 
     @Before
     public void setup() throws Exception {
         healthChecks.register("healthy-once-but-then-sleep5", new HealthCheck() {
-            private AtomicInteger counter = new AtomicInteger(1);
 
             @Override
             protected Result check() throws Exception {
-                if (counter.decrementAndGet() < 0) {
-                    Thread.sleep(7000);
+                if(healthySucceeded.get()) {
+                    return Result.unhealthy("Forced unhealthy as healthy check has succeded");
                 }
                 return Result.healthy();
             }
@@ -149,18 +146,23 @@ public class ServiceDiscoveryBundleDwStalenessMonitorTest {
 
     @Test
     public void testDiscovery() throws Exception {
-        Optional<ServiceNode<ShardInfo>> info = bundle.getServiceDiscoveryClient().getNode();
-        assertTrue(info.isPresent());
-        assertEquals("testing", info.get().getNodeData().getEnvironment());
-        assertEquals("CustomHost", info.get().getHost());
-        assertEquals(21000, info.get().getPort());
+        assertNodePresence(bundle);
+        val info = bundle.getServiceDiscoveryClient()
+                .getNode()
+                .orElse(null);
+        assertNotNull(info);
+        assertNotNull(info.getNodeData());
+        assertEquals("testing", info.getNodeData().getEnvironment());
+        assertEquals("CustomHost", info.getHost());
+        assertEquals(21000, info.getPort());
+        healthySucceeded.set(true);
 
-        /* since healtcheck is sleeping for 5secs, the staleness allowed is 2+1=3 seconds, node should vanish after
-           3 seconds */
-        Thread.sleep(6000);
-        assertTrue(bundle.getServiceDiscoveryClient().getNode().isPresent());
-        Thread.sleep(6000);
-        info = bundle.getServiceDiscoveryClient().getNode();
-        assertFalse(info.isPresent());
+        /* once the first check has succeeded it should get unhealthy and hence no node */
+        assertNodeAbsence(bundle);
+        healthySucceeded.set(false);
+
+        /* again mark healthy and check */
+
+        assertNodePresence(bundle);
     }
 }
