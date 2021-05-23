@@ -7,7 +7,7 @@
     <groupId>io.appform.dropwizard.discovery</groupId>
     <artifactId>dropwizard-service-discovery</artifactId>
     <packaging>pom</packaging>
-    <version>2.0.18-1</version>
+    <version>2.0.21-1</version>
     <name>Dropwizard Service Discovery</name>
     <url>https://github.com/santanusinha/dropwizard-service-discovery</url>
     <description>Service Discovery Bundle for Dropwizard</description>
@@ -113,7 +113,7 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <dropwizard.version>2.0.18</dropwizard.version>
+        <dropwizard.version>2.0.21</dropwizard.version>
         <lombok.version>1.18.8</lombok.version>
         <guava.version>28.0-jre</guava.version>
         <junit.version>4.12</junit.version>

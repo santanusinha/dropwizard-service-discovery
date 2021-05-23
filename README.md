@@ -7,7 +7,7 @@ Provides service discovery to dropwizard services. It uses [Ranger](https://gith
 <dependency>
     <groupId>io.appform.dropwizard.discovery</groupId>
     <artifactId>dropwizard-service-discovery-bundle</artifactId>
-    <version>2.0.18-1</version>
+    <version>2.0.21-1</version>
 </dependency>
 ```
 
@@ -16,7 +16,7 @@ Provides service discovery to dropwizard services. It uses [Ranger](https://gith
 <dependency>
     <groupId>io.appform.dropwizard.discovery</groupId>
     <artifactId>dropwizard-service-discovery-client</artifactId>
-    <version>2.0.18-1</version>
+    <version>2.0.21-1</version>
 </dependency>
 ```
 
