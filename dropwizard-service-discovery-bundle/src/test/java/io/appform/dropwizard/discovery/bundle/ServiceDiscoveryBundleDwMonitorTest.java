@@ -24,8 +24,6 @@ import com.codahale.metrics.health.HealthCheck;
 import com.codahale.metrics.health.HealthCheckRegistry;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.flipkart.ranger.healthcheck.HealthcheckStatus;
-import com.flipkart.ranger.model.ServiceNode;
-import io.appform.dropwizard.discovery.common.ShardInfo;
 import io.dropwizard.Configuration;
 import io.dropwizard.jersey.DropwizardResourceConfig;
 import io.dropwizard.jersey.setup.JerseyEnvironment;
@@ -34,6 +32,7 @@ import io.dropwizard.setup.AdminEnvironment;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 import lombok.extern.slf4j.Slf4j;
+import lombok.val;
 import org.apache.curator.test.TestingCluster;
 import org.eclipse.jetty.util.component.LifeCycle;
 import org.junit.After;
@@ -41,16 +40,14 @@ import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.LoggerFactory;
 
-import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static io.appform.dropwizard.discovery.bundle.TestUtils.assertNodeAbsence;
+import static io.appform.dropwizard.discovery.bundle.TestUtils.assertNodePresence;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 
 @Slf4j
@@ -150,17 +147,18 @@ public class ServiceDiscoveryBundleDwMonitorTest {
 
     @Test
     public void testDiscovery() throws Exception {
-        Optional<ServiceNode<ShardInfo>> info = bundle.getServiceDiscoveryClient().getNode();
-        Thread.sleep(1000);
-        assertTrue(info.isPresent());
-        assertEquals("testing", info.get().getNodeData().getEnvironment());
-        assertEquals("CustomHost", info.get().getHost());
-        assertEquals(21000, info.get().getPort());
+        assertNodePresence(bundle);
+        val info = bundle.getServiceDiscoveryClient()
+                .getNode()
+                .orElse(null);
+        assertNotNull(info);
+        assertNotNull(info.getNodeData());
+        assertEquals("testing", info.getNodeData().getEnvironment());
+        assertEquals("CustomHost", info.getHost());
+        assertEquals(21000, info.getPort());
 
         /* after 2 turns, the healthcheck will return unhealthy, and since dropwizardCheckInterval
            is 2 seconds, within 2*2=4 seconds, nodes should be absent */
-        Thread.sleep(11000);
-        info = bundle.getServiceDiscoveryClient().getNode();
-        assertFalse(info.isPresent());
+        assertNodeAbsence(bundle);
     }
 }

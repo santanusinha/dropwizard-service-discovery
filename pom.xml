@@ -116,7 +116,7 @@
         <dropwizard.version>2.0.21</dropwizard.version>
         <lombok.version>1.18.8</lombok.version>
         <guava.version>28.0-jre</guava.version>
-        <junit.version>4.12</junit.version>
+        <junit.version>4.13.1</junit.version>
         <ranger.version>0.6.3</ranger.version>
         <curator.version>4.2.0</curator.version>
     </properties>
@@ -191,6 +191,14 @@
             <version>${dropwizard.version}</version>
             <scope>test</scope>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/org.awaitility/awaitility -->
+        <dependency>
+            <groupId>org.awaitility</groupId>
+            <artifactId>awaitility</artifactId>
+            <version>4.0.3</version>
+            <scope>test</scope>
+        </dependency>
+
     </dependencies>
 
     <build>
@@ -208,27 +216,33 @@
         </pluginManagement>
         <plugins>
             <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>cobertura-maven-plugin</artifactId>
-                <version>2.7</version>
-                <configuration>
-                    <check>
-                        <branchRate>70</branchRate>
-                        <lineRate>70</lineRate>
-                        <haltOnFailure>false</haltOnFailure>
-                        <totalBranchRate>70</totalBranchRate>
-                        <totalLineRate>70</totalLineRate>
-                        <packageLineRate>70</packageLineRate>
-                        <packageBranchRate>70</packageBranchRate>
-                    </check>
-                </configuration>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>0.8.6</version>
                 <executions>
                     <execution>
+                        <id>prepare-agent</id>
                         <goals>
-                            <goal>clean</goal>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>report</id>
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>report</goal>
                         </goals>
                     </execution>
                 </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.8.1</version>
+                <configuration>
+                    <source>1.8</source>
+                    <target>1.8</target>
+                </configuration>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -245,6 +259,9 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
+                <configuration>
+                    <source>8</source>
+                </configuration>
                 <executions>
                     <execution>
                         <id>attach-javadocs</id>
@@ -253,17 +270,6 @@
                         </goals>
                     </execution>
                 </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.sonatype.plugins</groupId>
-                <artifactId>nexus-staging-maven-plugin</artifactId>
-                <version>1.6.7</version>
-                <extensions>true</extensions>
-                <configuration>
-                    <serverId>ossrh</serverId>
-                    <nexusUrl>https://oss.sonatype.org/</nexusUrl>
-                    <autoReleaseAfterClose>true</autoReleaseAfterClose>
-                </configuration>
             </plugin>
         </plugins>
     </build>
@@ -279,6 +285,17 @@
             </activation>
             <build>
                 <plugins>
+                    <plugin>
+                        <groupId>org.sonatype.plugins</groupId>
+                        <artifactId>nexus-staging-maven-plugin</artifactId>
+                        <version>1.6.7</version>
+                        <extensions>true</extensions>
+                        <configuration>
+                            <serverId>ossrh</serverId>
+                            <nexusUrl>https://oss.sonatype.org/</nexusUrl>
+                            <autoReleaseAfterClose>true</autoReleaseAfterClose>
+                        </configuration>
+                    </plugin>
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-gpg-plugin</artifactId>
@@ -303,13 +320,4 @@
             </build>
         </profile>
     </profiles>
-    <reporting>
-        <plugins>
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>cobertura-maven-plugin</artifactId>
-                <version>2.7</version>
-            </plugin>
-        </plugins>
-    </reporting>
 </project>
