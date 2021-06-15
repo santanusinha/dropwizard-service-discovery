@@ -17,15 +17,28 @@
 
 package io.appform.dropwizard.discovery.bundle;
 
+import lombok.experimental.UtilityClass;
+
 /**
  * Constants
  */
+@UtilityClass
 public class Constants {
-    public static final String DEFAULT_NAMESPACE = "default";
-    public static final String DEFAULT_HOST = "__DEFAULT_SERVICE_HOST";
-    public static final int DEFAULT_PORT = -1;
-    public static final int DEFAULT_DW_CHECK_INTERVAl = 15;
-    public static final int DEFAULT_RETRY_CONN_INTERVAL = 5000;
+    public final String DEFAULT_NAMESPACE = "default";
+    public final String DEFAULT_HOST = "__DEFAULT_SERVICE_HOST";
+    public final int DEFAULT_PORT = -1;
+    public final int DEFAULT_DW_CHECK_INTERVAl = 15;
+    public final int DEFAULT_RETRY_CONN_INTERVAL = 5000;
 
-    private Constants() {}
+    /**
+     *  Zones and Node specific constants
+     */
+    public final int DEFAULT_ZONE_ID = 0;
+    public final int MAX_ZONES = 10;
+    public final int MAX_NODES_PER_ZONE = 1000;
+
+    /**
+     * Id specific constants
+     */
+    public final int MAX_ID_PER_MS = 1000;
 }

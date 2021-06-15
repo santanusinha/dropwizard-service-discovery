@@ -107,6 +107,8 @@ public abstract class ServiceDiscoveryBundle<T extends Configuration> implements
         final String serviceName = getServiceName(configuration);
         final String hostname = getHost();
         final int port = getPort(configuration);
+        final int zoneId = getZoneId(configuration);
+
         rotationStatus = new RotationStatus(serviceDiscoveryConfiguration.isInitialRotationStatus());
         serverStatus = new DropwizardServerStatus(false);
 
@@ -129,7 +131,7 @@ public abstract class ServiceDiscoveryBundle<T extends Configuration> implements
                 serviceName);
 
         environment.lifecycle()
-                .manage(new ServiceDiscoveryManager(serviceName));
+                .manage(new ServiceDiscoveryManager(serviceName, zoneId));
         environment.jersey()
                 .register(new InfoResource(serviceDiscoveryClient));
         environment.admin()
@@ -141,6 +143,16 @@ public abstract class ServiceDiscoveryBundle<T extends Configuration> implements
     protected abstract ServiceDiscoveryConfiguration getRangerConfiguration(T configuration);
 
     protected abstract String getServiceName(T configuration);
+
+    protected int getZoneId(T configuration) {
+        Preconditions.checkArgument(
+                serviceDiscoveryConfiguration.getZoneId() >= Constants.DEFAULT_ZONE_ID
+                        && serviceDiscoveryConfiguration.getZoneId() < Constants.MAX_ZONES,
+                String.format("Looks like zoneId has not been set correctly.\n" +
+                        "Expected zoneId >= %d and < %d", Constants.DEFAULT_ZONE_ID, Constants.MAX_ZONES)
+        );
+        return serviceDiscoveryConfiguration.getZoneId();
+    }
 
     protected List<IsolatedHealthMonitor> getHealthMonitors() {
         return Lists.newArrayList();
@@ -244,9 +256,11 @@ public abstract class ServiceDiscoveryBundle<T extends Configuration> implements
 
     private class ServiceDiscoveryManager implements Managed {
         private final String serviceName;
+        private final int zoneId;
 
-        public ServiceDiscoveryManager(String serviceName) {
+        public ServiceDiscoveryManager(final String serviceName, final int zoneId) {
             this.serviceName = serviceName;
+            this.zoneId = zoneId;
         }
 
         @Override
@@ -254,7 +268,7 @@ public abstract class ServiceDiscoveryBundle<T extends Configuration> implements
             curator.start();
             serviceProvider.start();
             serviceDiscoveryClient.start();
-            NodeIdManager nodeIdManager = new NodeIdManager(curator, serviceName);
+            NodeIdManager nodeIdManager = new NodeIdManager(curator, serviceName, zoneId);
             IdGenerator.initialize(nodeIdManager.fixNodeId(), globalIdConstraints, Collections.emptyMap());
         }
 
