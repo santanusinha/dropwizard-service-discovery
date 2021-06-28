@@ -115,7 +115,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <dropwizard.version>1.3.13</dropwizard.version>
         <lombok.version>1.18.16</lombok.version>
-        <guava.version>28.0-jre</guava.version>
+        <guava.version>29.0-jre</guava.version>
         <junit.version>4.13.1</junit.version>
         <ranger.version>0.6.3</ranger.version>
         <curator.version>4.2.0</curator.version>
