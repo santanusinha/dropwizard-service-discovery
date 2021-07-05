@@ -17,11 +17,12 @@
 
 package io.appform.dropwizard.discovery.bundle.rotationstatus;
 
-import com.google.common.collect.ImmutableMultimap;
 import io.dropwizard.servlets.tasks.Task;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.PrintWriter;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Admin task to take node oor in ranger
@@ -35,7 +36,7 @@ public class OORTask extends Task {
     }
 
     @Override
-    public void execute(ImmutableMultimap<String, String> immutableMultimap, PrintWriter printWriter) throws Exception {
+    public void execute(Map<String, List<String>> map, PrintWriter printWriter) throws Exception {
         rotationStatus.oor();
         log.info("Taking node out of rotation on ranger");
     }
