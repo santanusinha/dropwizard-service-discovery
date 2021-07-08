@@ -22,6 +22,7 @@ import com.github.rholder.retry.Retryer;
 import com.github.rholder.retry.RetryerBuilder;
 import com.github.rholder.retry.StopStrategies;
 import com.google.common.base.Predicates;
+import io.appform.dropwizard.discovery.bundle.Constants;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.curator.framework.CuratorFramework;
@@ -41,10 +42,15 @@ public class NodeIdManager {
     private final SecureRandom secureRandom;
     private final CuratorPathUtils pathUtils;
 
+    private final int zoneId;
+
     @Getter
     private int node;
 
-    public NodeIdManager(CuratorFramework curatorFramework, String processName) {
+    public NodeIdManager(final CuratorFramework curatorFramework,
+                         final String processName,
+                         final int zoneId) {
+        this.zoneId = zoneId;
         this.curatorFramework = curatorFramework;
         this.secureRandom = new SecureRandom(Long.toBinaryString(System.currentTimeMillis()).getBytes());
         this.pathUtils = new CuratorPathUtils(processName);
@@ -65,7 +71,7 @@ public class NodeIdManager {
                 .build();
         try {
             retryer.call(() -> {
-                node = secureRandom.nextInt(Constants.MAX_NUM_NODES);
+                node = (zoneId * Constants.MAX_NODES_PER_ZONE) + secureRandom.nextInt(Constants.MAX_NODES_PER_ZONE);
                 final String path = pathUtils.path(node);
                 try {
                     curatorFramework.create()

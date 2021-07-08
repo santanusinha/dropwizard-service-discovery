@@ -18,7 +18,11 @@
 package io.appform.dropwizard.discovery.bundle;
 
 import com.google.common.base.Strings;
-import lombok.*;
+import lombok.Builder;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
 import org.hibernate.validator.constraints.NotEmpty;
 
 import javax.validation.constraints.Max;
@@ -49,6 +53,10 @@ public class ServiceDiscoveryConfiguration {
     @Max(60000)
     private int connectionRetryIntervalMillis = Constants.DEFAULT_RETRY_CONN_INTERVAL;
 
+    @Min(0)
+    @Max(9)
+    private int zoneId = Constants.DEFAULT_ZONE_ID;
+
     @NotNull
     @NotEmpty
     private String publishedHost = Constants.DEFAULT_HOST;
@@ -74,19 +82,19 @@ public class ServiceDiscoveryConfiguration {
     private int dropwizardCheckStaleness;
 
     @Builder
-    public ServiceDiscoveryConfiguration(
-            String namespace,
-            String environment,
-            String zookeeper,
-            int connectionRetryIntervalMillis,
-            String publishedHost,
-            int publishedPort,
-            int refreshTimeMs,
-            boolean disableWatchers,
-            long initialDelaySeconds,
-            boolean initialRotationStatus,
-            int dropwizardCheckInterval,
-            int dropwizardCheckStaleness) {
+    public ServiceDiscoveryConfiguration(final String namespace,
+                                         final String environment,
+                                         final String zookeeper,
+                                         final int connectionRetryIntervalMillis,
+                                         final String publishedHost,
+                                         final int zoneId,
+                                         final int publishedPort,
+                                         final int refreshTimeMs,
+                                         final boolean disableWatchers,
+                                         final long initialDelaySeconds,
+                                         final boolean initialRotationStatus,
+                                         final int dropwizardCheckInterval,
+                                         final int dropwizardCheckStaleness) {
         this.namespace = Strings.isNullOrEmpty(namespace)
                          ? Constants.DEFAULT_NAMESPACE
                          : namespace;
@@ -95,6 +103,7 @@ public class ServiceDiscoveryConfiguration {
         this.connectionRetryIntervalMillis = connectionRetryIntervalMillis == 0
                                              ? Constants.DEFAULT_RETRY_CONN_INTERVAL
                                              : connectionRetryIntervalMillis;
+        this.zoneId = zoneId;
         this.publishedHost = Strings.isNullOrEmpty(publishedHost)
                              ? Constants.DEFAULT_HOST
                              : publishedHost;

@@ -23,6 +23,7 @@ import com.github.rholder.retry.RetryerBuilder;
 import com.github.rholder.retry.StopStrategies;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
+import io.appform.dropwizard.discovery.bundle.Constants;
 import io.appform.dropwizard.discovery.bundle.id.constraints.IdValidationConstraint;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -66,9 +67,12 @@ public class IdGenerator {
         }
     }
 
-    private static SecureRandom random = new SecureRandom(Long.toBinaryString(System.currentTimeMillis()).getBytes());
+    private static final SecureRandom random = new SecureRandom(
+            Long.toBinaryString(System.currentTimeMillis())
+                    .getBytes()
+    );
     private static int nodeId;
-    private static DateTimeFormatter formatter = DateTimeFormat.forPattern("yyMMddHHmmssSSS");
+    private static final DateTimeFormatter formatter = DateTimeFormat.forPattern("yyMMddHHmmssSSS");
     private static final CollisionChecker collisionChecker = new CollisionChecker();
     private static List<IdValidationConstraint> globalConstraints = Collections.emptyList();
     private static Map<String, List<IdValidationConstraint>> domainSpecificConstraints = new HashMap<>();
@@ -79,7 +83,7 @@ public class IdGenerator {
             .retryIfResult(result -> result.getState().equals(IdValidationState.INVALID_RETRYABLE))
             .build();
     private static final String patternString = "(.*)([0-9]{15})([0-9]{4})([0-9]{3})";
-    private static Pattern pattern = Pattern.compile(patternString);
+    private static final Pattern pattern = Pattern.compile(patternString);
 
     public static void initialize(int node) {
         nodeId = node;
@@ -90,8 +94,9 @@ public class IdGenerator {
         domainSpecificConstraints.clear();
     }
 
-    public static void initialize(
-            int node, List<IdValidationConstraint> globalConstraints, Map<String, List<IdValidationConstraint>> domainSpecificConstraints) {
+    public static void initialize(final int node,
+                                  final List<IdValidationConstraint> globalConstraints,
+                                  final Map<String, List<IdValidationConstraint>> domainSpecificConstraints) {
         nodeId = node;
         IdGenerator.globalConstraints = globalConstraints != null
                 ? globalConstraints
